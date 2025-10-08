@@ -5,6 +5,7 @@ const jwtService = require("../service/jwt.service");
 async function checkAuth(req, res, next) {
     try {
         const token = req.headers?.authorization?.replace("Bearer ", "");
+        console.log(token);
 
         if (!token) {
             throw new Error("Token was not provided");
@@ -23,21 +24,21 @@ async function checkAuth(req, res, next) {
             //     "created_at",
             // ],
             where: { id: payload.userId },
-            include: [
-                {
-                    model: UserSetting,
-                    as: "settings",
-                    required: false,
-                },
-                {
-                    model: Notification,
-                    required: false,
-                    as: "notifications",
-                    through: {
-                        attributes: ["read_at", "created_at"],
-                    },
-                },
-            ],
+            // include: [
+            //     {
+            //         model: UserSetting,
+            //         as: "settings",
+            //         required: false,
+            //     },
+            //     {
+            //         model: Notification,
+            //         required: false,
+            //         as: "notifications",
+            //         through: {
+            //             attributes: ["read_at", "created_at"],
+            //         },
+            //     },
+            // ],
         });
 
         if (!user) {
