@@ -31,7 +31,11 @@ fs.readdirSync(__dirname)
         );
     })
     .forEach((file) => {
-        const model = require(path.join(__dirname, file))(sequelize);
+        // ✅ TRUYỀN DataTypes VÀO ĐÂY
+        const model = require(path.join(__dirname, file))(
+            sequelize,
+            Sequelize.DataTypes
+        );
         db[model.name] = model;
     });
 

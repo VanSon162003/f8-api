@@ -5,7 +5,6 @@ const jwtService = require("../service/jwt.service");
 async function checkAuth(req, res, next) {
     try {
         const token = req.headers?.authorization?.replace("Bearer ", "");
-        console.log(token);
 
         if (!token) {
             throw new Error("Token was not provided");

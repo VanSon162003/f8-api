@@ -13,30 +13,49 @@ exports.registerValidate = [
             errorMessage: "This field cannot be empty.",
         },
         email: {
-            notEmpty: true,
-            errorMessage: "This field cannot be empty.",
+            notEmpty: {
+                errorMessage: "This field cannot be empty.",
+            },
+            isEmail: {
+                errorMessage: "Please enter a valid email address.",
+            },
+            normalizeEmail: true,
         },
+
         password: {
-            notEmpty: true,
-            errorMessage: "This field cannot be empty.",
+            notEmpty: {
+                errorMessage: "This field cannot be empty.",
+            },
+            isLength: {
+                options: { min: 8 },
+                errorMessage: "Password must be at least 8 characters long.",
+            },
         },
     }),
 
     handlerValidatorErrors,
 ];
 
-exports.updateCategoryValidator = [
+exports.loginValidate = [
     checkSchema({
-        name: {
-            optional: true,
-            notEmpty: true,
-            errorMessage: "trường này không được để trống",
+        email: {
+            notEmpty: {
+                errorMessage: "This field cannot be empty.",
+            },
+            isEmail: {
+                errorMessage: "Please enter a valid email address.",
+            },
+            normalizeEmail: true,
         },
 
-        desc: {
-            optional: true,
-            notEmpty: true,
-            errorMessage: "trường này không được để trống",
+        password: {
+            notEmpty: {
+                errorMessage: "This field cannot be empty.",
+            },
+            isLength: {
+                options: { min: 8 },
+                errorMessage: "Password must be at least 8 characters long.",
+            },
         },
     }),
 

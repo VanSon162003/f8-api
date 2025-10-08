@@ -5,7 +5,7 @@ const getMe = async (req, res) => {
         const user = req.user;
 
         if (!user) {
-            response.error(res, 401, "Unauthorized");
+            return response.error(res, 401, "Unauthorized");
         }
         response.success(res, 200, user);
     } catch (error) {
@@ -15,7 +15,17 @@ const getMe = async (req, res) => {
 
 const register = async (req, res) => {
     try {
-        const data = await authService.register(req.body);
+        const { userId, token } = await authService.register(req.body);
+
+        response.success(res, 201, token);
+    } catch (error) {
+        response.error(res, 500, error.message);
+    }
+};
+
+const login = async (req, res) => {
+    try {
+        const data = await authService.login(req.body);
 
         response.success(res, 201, data);
     } catch (error) {
@@ -23,7 +33,31 @@ const register = async (req, res) => {
     }
 };
 
+const logout = async (req, res) => {
+    try {
+        const data = await authService.logout(req.body);
+
+        response.success(res, 201);
+    } catch (error) {
+        response.error(res, 500, error.message);
+    }
+};
+
+const refreshToken = async (req, res) => {
+    try {
+        const tokenData = await authService.refreshAccessToken(
+            req.body.refresh_token
+        );
+        response.success(res, 200, tokenData);
+    } catch (error) {
+        response.error(res, 403, error.message);
+    }
+};
+
 module.exports = {
     getMe,
     register,
+    login,
+    refreshToken,
+    logout,
 };
