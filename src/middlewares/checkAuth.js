@@ -1,10 +1,5 @@
 const response = require("../utils/response");
-const {
-    User,
-    UserSetting,
-    Notification,
-    UserNotification,
-} = require("../db/models");
+const { User } = require("../db/models");
 const jwtService = require("../service/jwt.service");
 
 async function checkAuth(req, res, next) {
