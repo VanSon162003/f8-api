@@ -1,5 +1,5 @@
 const response = require("../utils/response");
-const { User } = require("../db/models");
+const { User, AccessToken } = require("../db/models");
 const jwtService = require("../service/jwt.service");
 
 async function checkAuth(req, res, next) {
@@ -8,6 +8,16 @@ async function checkAuth(req, res, next) {
 
         if (!token) {
             throw new Error("Token was not provided");
+        }
+
+        const tokenExits = await AccessToken.findOne({
+            where: {
+                access_token: token,
+            },
+        });
+
+        if (tokenExits) {
+            return response.error(res, 401, "Token is invalid");
         }
 
         const payload = jwtService.verifyAccessToken(token);

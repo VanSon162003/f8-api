@@ -35,7 +35,7 @@ const login = async (req, res) => {
 
 const logout = async (req, res) => {
     try {
-        const data = await authService.logout(req.body);
+        await authService.logout(req.body);
 
         response.success(res, 201);
     } catch (error) {
