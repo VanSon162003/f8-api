@@ -20,7 +20,6 @@ const generateAccessToken = (
 const verifyAccessToken = (token, secret = JWT_SECRET) => {
     try {
         const payload = jwt.verify(token, secret);
-        console.log(payload);
 
         return payload;
     } catch (error) {

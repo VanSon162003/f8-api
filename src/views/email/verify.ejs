@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="vi">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Xác thực Email</title>
+    </head>
+    <body
+        style="
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+        "
+    >
+        <table
+            role="presentation"
+            style="width: 100%; border-collapse: collapse"
+        >
+            <tr>
+                <td style="padding: 0">
+                    <div
+                        style="
+                            max-width: 600px;
+                            margin: 0 auto;
+                            background-color: #ffffff;
+                        "
+                    >
+                        <!-- Header -->
+                        <div
+                            style="
+                                background-color: #2563eb;
+                                padding: 40px 20px;
+                                text-align: center;
+                            "
+                        >
+                            <h1
+                                style="
+                                    color: #ffffff;
+                                    margin: 0;
+                                    font-size: 28px;
+                                    font-weight: bold;
+                                "
+                            >
+                                Xác thực Email
+                            </h1>
+                        </div>
+
+                        <!-- Content -->
+                        <div style="padding: 40px 30px">
+                            <h2
+                                style="
+                                    color: #1f2937;
+                                    margin: 0 0 20px 0;
+                                    font-size: 24px;
+                                    font-weight: 600;
+                                "
+                            >
+                                Chào mừng bạn!
+                            </h2>
+
+                            <p
+                                style="
+                                    color: #4b5563;
+                                    line-height: 1.6;
+                                    margin: 0 0 20px 0;
+                                    font-size: 16px;
+                                "
+                            >
+                                Cảm ơn bạn đã đăng ký tài khoản. Để hoàn tất quá
+                                trình đăng ký, vui lòng xác thực địa chỉ email
+                                của bạn bằng cách nhấp vào nút bên dưới.
+                            </p>
+
+                            <!-- Verification Button -->
+                            <div style="text-align: center; margin: 30px 0">
+                                <a
+                                    href="<%= verifyUrl  %>"
+                                    style="
+                                        display: inline-block;
+                                        background-color: #10b981;
+                                        color: #ffffff;
+                                        text-decoration: none;
+                                        padding: 15px 30px;
+                                        border-radius: 8px;
+                                        font-size: 16px;
+                                        font-weight: 600;
+                                        transition: background-color 0.3s ease;
+                                        cursor: pointer;
+                                    "
+                                >
+                                    Xác thực Email
+                                </a>
+                            </div>
+
+                            <p
+                                style="
+                                    color: #6b7280;
+                                    line-height: 1.6;
+                                    margin: 20px 0;
+                                    font-size: 14px;
+                                "
+                            >
+                                Nếu nút không hoạt động, bạn có thể sao chép và
+                                dán liên kết sau vào trình duyệt:
+                            </p>
+
+                            <div
+                                style="
+                                    background-color: #f9fafb;
+                                    border: 1px solid #e5e7eb;
+                                    border-radius: 6px;
+                                    padding: 15px;
+                                    margin: 20px 0;
+                                    word-break: break-all;
+                                "
+                            >
+                                <code
+                                    style="
+                                        color: #374151;
+                                        font-size: 14px;
+                                        font-family: 'Courier New', monospace;
+                                    "
+                                >
+                                    <%= verifyUrl %>
+                                </code>
+                            </div>
+
+                            <div
+                                style="
+                                    border-top: 1px solid #e5e7eb;
+                                    margin: 30px 0 20px 0;
+                                    padding-top: 20px;
+                                "
+                            >
+                                <p
+                                    style="
+                                        color: #6b7280;
+                                        line-height: 1.6;
+                                        margin: 0;
+                                        font-size: 14px;
+                                    "
+                                >
+                                    <strong>Lưu ý quan trọng:</strong>
+                                </p>
+                                <ul
+                                    style="
+                                        color: #6b7280;
+                                        line-height: 1.6;
+                                        margin: 10px 0;
+                                        font-size: 14px;
+                                        padding-left: 20px;
+                                    "
+                                >
+                                    <li>Liên kết này sẽ hết hạn sau 24 giờ</li>
+                                    <li>
+                                        Nếu bạn không tạo tài khoản này, vui
+                                        lòng bỏ qua email này
+                                    </li>
+                                    <li>
+                                        Không chia sẻ liên kết này với bất kỳ ai
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Footer -->
+                        <div
+                            style="
+                                background-color: #f9fafb;
+                                padding: 30px;
+                                text-align: center;
+                                border-top: 1px solid #e5e7eb;
+                            "
+                        >
+                            <p
+                                style="
+                                    color: #6b7280;
+                                    margin: 0 0 10px 0;
+                                    font-size: 14px;
+                                "
+                            >
+                                Email này được gửi từ
+                                <strong>F8</strong>
+                            </p>
+                            <p
+                                style="
+                                    color: #9ca3af;
+                                    margin: 0;
+                                    font-size: 12px;
+                                "
+                            >
+                                1 Ngõ 41 Trần Duy Hưng, Trung Hoà, Cầu Giấy, Hà
+                                Nội 11313<br />
+                                Email: sonnv@fullstack.edu.vn | Hotline:
+                                0388308588
+                            </p>
+
+                            <!-- Social Links -->
+                            <div style="margin-top: 20px">
+                                <a
+                                    href="https://www.facebook.com/nguyen.van.son.43235/"
+                                    target="_blank"
+                                    style="
+                                        display: inline-block;
+                                        margin: 0 10px;
+                                        color: #6b7280;
+                                        text-decoration: none;
+                                        font-size: 12px;
+                                    "
+                                >
+                                    Facebook
+                                </a>
+                                <a
+                                    href="https://github.com/VanSon162003"
+                                    target="_blank"
+                                    style="
+                                        display: inline-block;
+                                        margin: 0 10px;
+                                        color: #6b7280;
+                                        text-decoration: none;
+                                        font-size: 12px;
+                                    "
+                                >
+                                    Github
+                                </a>
+                                <a
+                                    href="https://vsron.site/"
+                                    target="_blank"
+                                    style="
+                                        display: inline-block;
+                                        margin: 0 10px;
+                                        color: #6b7280;
+                                        text-decoration: none;
+                                        font-size: 12px;
+                                    "
+                                >
+                                    Website
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </body>
+</html>

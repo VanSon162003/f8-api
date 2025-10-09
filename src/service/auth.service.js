@@ -1,4 +1,4 @@
-const { User, AccessToken } = require("@/db/models");
+const { User, AccessToken, Queue } = require("@/db/models");
 const bcrypt = require("@/utils/bcrypt");
 const jwt = require("./jwt.service");
 const jwtService = require("./jwt.service");
@@ -22,6 +22,15 @@ const register = async (data) => {
 
     const userId = user.id;
     const token = jwt.generateAccessToken(userId);
+
+    try {
+        await Queue.create({
+            type: "sendVerifyEmailJob",
+            payload: { userId },
+        });
+    } catch (error) {
+        console.error("Failed to create job in queue:", error);
+    }
 
     return {
         userId,
@@ -77,6 +86,56 @@ const logout = async (data) => {
     return true;
 };
 
+const verifyEmail = async (token) => {
+    try {
+        const { userId } = jwtService.verifyAccessToken(
+            token,
+            process.env.MAIL_JWT_SECRET
+        );
+
+        if (!userId) {
+            throw new Error("Token invalid");
+        }
+
+        const { dataValues: user } = await User.findOne({
+            where: { id: userId },
+        });
+
+        if (user.verify_at) {
+            throw new Error("Email already verified");
+        }
+
+        await User.update(
+            { verify_at: Date.now() },
+            {
+                where: { id: userId },
+            }
+        );
+    } catch (error) {
+        throw new Error(error);
+    }
+};
+
+const resendEmail = async (email) => {
+    const user = await User.findOne({ where: { email } });
+    if (!user) {
+        throw new Error("Email not found");
+    }
+    if (user.verify_at) {
+        throw new Error("Email đã được xác thực");
+    }
+    const userId = user.id;
+    try {
+        await Queue.create({
+            type: "sendVerifyEmailJob",
+            payload: { userId },
+        });
+    } catch (error) {
+        console.error("Failed to create job in queue:", error);
+    }
+    return true;
+};
+
 const refreshAccessToken = async (refreshTokenString) => {
     const refreshToken = await refreshTokenService.findValidRefreshToken(
         refreshTokenString
@@ -104,4 +163,6 @@ module.exports = {
     login,
     logout,
     refreshAccessToken,
+    verifyEmail,
+    resendEmail,
 };

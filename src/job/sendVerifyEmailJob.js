@@ -17,7 +17,7 @@ async function sendVerifyEmailJob(job) {
     const { access_token } = jwtService.generateAccessToken(
         userId,
         process.env.MAIL_JWT_SECRET,
-        60 * 60 * 12
+        60 * 5
     );
 
     const CLIENT_URL = process.env.CLIENT_URL;

@@ -19,5 +19,7 @@ router.post("/register", registerValidate, authController.register);
 router.post("/login", loginValidate, authController.login);
 router.post("/logout", authController.logout);
 router.post("/refresh-token", authController.refreshToken);
+router.post("/verify-email", authController.verifyEmail);
+router.post("/resend-email", authController.resendEmail);
 
 module.exports = router;

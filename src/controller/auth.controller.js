@@ -15,7 +15,7 @@ const getMe = async (req, res) => {
 
 const register = async (req, res) => {
     try {
-        const { userId, token } = await authService.register(req.body);
+        const { token } = await authService.register(req.body);
 
         response.success(res, 201, token);
     } catch (error) {
@@ -43,6 +43,26 @@ const logout = async (req, res) => {
     }
 };
 
+const verifyEmail = async (req, res) => {
+    try {
+        await authService.verifyEmail(req.query.token);
+
+        response.success(res, 200, "success verified");
+    } catch (error) {
+        response.error(res, 403, error.message);
+    }
+};
+
+const resendEmail = async (req, res) => {
+    try {
+        await authService.resendEmail(req.body.email);
+
+        response.success(res, 200, "success resend email");
+    } catch (error) {
+        response.error(res, 403, error.message);
+    }
+};
+
 const refreshToken = async (req, res) => {
     try {
         const tokenData = await authService.refreshAccessToken(
@@ -60,4 +80,6 @@ module.exports = {
     login,
     refreshToken,
     logout,
+    verifyEmail,
+    resendEmail,
 };
