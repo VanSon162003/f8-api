@@ -1,6 +1,7 @@
 {
     "scripts": {
-        "start": "node --watch server.js"
+        "start": "node --watch server.js",
+        "queue": "node --watch src/workers/queueWorker.js"
     },
     "dependencies": {
         "@faker-js/faker": "^10.0.0",

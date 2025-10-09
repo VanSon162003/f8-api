@@ -1,3 +1,6 @@
+const dotenv = require("dotenv");
+dotenv.config();
+
 const { User, AccessToken, Queue } = require("@/db/models");
 const bcrypt = require("@/utils/bcrypt");
 const jwt = require("./jwt.service");
@@ -86,6 +89,32 @@ const logout = async (data) => {
     return true;
 };
 
+const forgotPassword = async (token, password) => {
+    try {
+        const { userId } = jwtService.verifyAccessToken(
+            token,
+            process.env.MAIL_JWT_SECRET
+        );
+
+        if (!userId) {
+            throw new Error("Token invalid");
+        }
+
+        const user = await User.findOne({
+            where: { id: userId },
+        });
+
+        if (!user) {
+            throw new Error("User not found");
+        }
+
+        user.password = await bcrypt.hash(password);
+        await user.save();
+    } catch (error) {
+        throw new Error(error);
+    }
+};
+
 const verifyEmail = async (token) => {
     try {
         const { userId } = jwtService.verifyAccessToken(
@@ -116,18 +145,20 @@ const verifyEmail = async (token) => {
     }
 };
 
-const resendEmail = async (email) => {
+const resendEmail = async (email, job) => {
     const user = await User.findOne({ where: { email } });
     if (!user) {
-        throw new Error("Email not found");
+        throw new Error(`Email không tồn tại`);
     }
-    if (user.verify_at) {
+    if (user.verify_at && job === "sendVerifyEmailJob") {
         throw new Error("Email đã được xác thực");
     }
+
     const userId = user.id;
+
     try {
         await Queue.create({
-            type: "sendVerifyEmailJob",
+            type: job,
             payload: { userId },
         });
     } catch (error) {
@@ -165,4 +196,5 @@ module.exports = {
     refreshAccessToken,
     verifyEmail,
     resendEmail,
+    forgotPassword,
 };

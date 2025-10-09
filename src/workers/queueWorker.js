@@ -1,8 +1,11 @@
 const sendVerifyEmailJob = require("../job/sendVerifyEmailJob");
+const forgotPasswordJob = require("../job/forgotPasswordJob");
+
 const QueueService = require("../service/queue.service");
 
 const handlers = {
     sendVerifyEmailJob,
+    forgotPasswordJob,
 };
 
 async function jobProcess(job) {

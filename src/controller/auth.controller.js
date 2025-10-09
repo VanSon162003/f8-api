@@ -43,6 +43,19 @@ const logout = async (req, res) => {
     }
 };
 
+const forgotPassword = async (req, res) => {
+    const token = req.query.token;
+    const password = req.body.password;
+
+    try {
+        await authService.forgotPassword(token, password);
+
+        response.success(res, 201);
+    } catch (error) {
+        response.error(res, 500, error.message);
+    }
+};
+
 const verifyEmail = async (req, res) => {
     try {
         await authService.verifyEmail(req.query.token);
@@ -55,7 +68,7 @@ const verifyEmail = async (req, res) => {
 
 const resendEmail = async (req, res) => {
     try {
-        await authService.resendEmail(req.body.email);
+        await authService.resendEmail(req.body.email, req.body.job);
 
         response.success(res, 200, "success resend email");
     } catch (error) {
@@ -82,4 +95,5 @@ module.exports = {
     logout,
     verifyEmail,
     resendEmail,
+    forgotPassword,
 };
