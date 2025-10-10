@@ -1,4 +1,4 @@
-const slugify = require('slugify');
+const slugify = require("slugify");
 
 /**
  * Generate a unique slug from a string
@@ -8,33 +8,33 @@ const slugify = require('slugify');
  * @param {number} id - Optional ID to exclude from uniqueness check (for updates)
  * @returns {Promise<string>} - The unique slug
  */
-async function generateUniqueSlug(text, Model, field = 'slug', id = null) {
-    if (!text) return '';
-    
+async function generateUniqueSlug(text, Model, field = "slug", id = null) {
+    if (!text) return "";
+
     let baseSlug = slugify(text, {
         lower: true,
         strict: true,
-        remove: /[*+~.()'"!:@]/g
+        remove: /[*+~.()'"!:@]/g,
     });
-    
+
     let slug = baseSlug;
     let counter = 1;
-    
+
     while (true) {
         const whereClause = { [field]: slug };
         if (id) {
-            whereClause.id = { [require('sequelize').Op.ne]: id };
+            whereClause.id = { [require("sequelize").Op.ne]: id };
         }
-        
+
         const existing = await Model.findOne({ where: whereClause });
         if (!existing) {
             break;
         }
-        
+
         slug = `${baseSlug}-${counter}`;
         counter++;
     }
-    
+
     return slug;
 }
 
@@ -47,46 +47,55 @@ async function generateUniqueSlug(text, Model, field = 'slug', id = null) {
  * @param {number} id - Optional ID to exclude from uniqueness check (for updates)
  * @returns {Promise<string>} - The unique username
  */
-async function generateUniqueUsername(email, Model, id = null, firstName = '', lastName = '') {
-    let baseUsername = '';
-    
-    if (email) {
-        baseUsername = email.split('@')[0];
+async function generateUniqueUsername(
+    email,
+    Model,
+    id = null,
+    firstName = "",
+    lastName = ""
+) {
+    let baseUsername = "";
+    const checkEmailAuth0 = email.includes("auth0.com");
+
+    if (email && !checkEmailAuth0) {
+        baseUsername = email.split("@")[0];
     } else if (firstName || lastName) {
-        baseUsername = `${firstName || ''}${lastName || ''}`.toLowerCase().replace(/\s+/g, '');
+        baseUsername = `${firstName || ""}${lastName || ""}`
+            .toLowerCase()
+            .replace(/\s+/g, "");
     } else {
-        baseUsername = 'user';
+        baseUsername = "user";
     }
-    
+
     // Clean username
-    baseUsername = baseUsername.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-    
+    baseUsername = baseUsername.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
+
     if (!baseUsername) {
-        baseUsername = 'user';
+        baseUsername = "user";
     }
-    
+
     let username = baseUsername;
     let counter = 1;
-    
+
     while (true) {
         const whereClause = { username };
         if (id) {
-            whereClause.id = { [require('sequelize').Op.ne]: id };
+            whereClause.id = { [require("sequelize").Op.ne]: id };
         }
-        
+
         const existing = await Model.findOne({ where: whereClause });
         if (!existing) {
             break;
         }
-        
+
         username = `${baseUsername}${counter}`;
         counter++;
     }
-    
+
     return username;
 }
 
 module.exports = {
     generateUniqueSlug,
-    generateUniqueUsername
+    generateUniqueUsername,
 };

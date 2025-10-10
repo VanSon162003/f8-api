@@ -43,6 +43,21 @@ const logout = async (req, res) => {
     }
 };
 
+const authenticateAuth0 = async (req, res) => {
+    try {
+        const data = await authService.authenticateAuth0(req.body.user);
+
+        if (data.type === "register") {
+            return response.success(res, 201, data.token);
+        } else {
+            const { type, ...userData } = data;
+            return response.success(res, 201, userData);
+        }
+    } catch (error) {
+        response.error(res, 500, error.message);
+    }
+};
+
 const forgotPassword = async (req, res) => {
     const token = req.query.token;
     const password = req.body.password;
@@ -96,4 +111,5 @@ module.exports = {
     verifyEmail,
     resendEmail,
     forgotPassword,
+    authenticateAuth0,
 };

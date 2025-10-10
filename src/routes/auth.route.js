@@ -6,6 +6,7 @@ const authController = require("../controller/auth.controller");
 
 // Middleware
 const checkAuth = require("../middlewares/checkAuth");
+const checkAuth0 = require("../middlewares/checkAuth0");
 
 //validator
 const {
@@ -22,5 +23,7 @@ router.post("/forgot-password", authController.forgotPassword);
 router.post("/refresh-token", authController.refreshToken);
 router.post("/verify-email", authController.verifyEmail);
 router.post("/resend-email", authController.resendEmail);
+
+router.post("/protected", checkAuth0, authController.authenticateAuth0);
 
 module.exports = router;
