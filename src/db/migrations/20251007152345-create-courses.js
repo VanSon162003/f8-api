@@ -9,6 +9,10 @@ module.exports = {
                 primaryKey: true,
                 type: Sequelize.INTEGER,
             },
+            creator_id: {
+                type: Sequelize.INTEGER,
+                allowNull: false,
+            },
             title: {
                 type: Sequelize.STRING(255),
                 allowNull: false,
@@ -37,6 +41,10 @@ module.exports = {
                 type: Sequelize.INTEGER,
                 defaultValue: 0,
             },
+            total_view: {
+                type: Sequelize.INTEGER,
+                defaultValue: 0,
+            },
             total_lesson: {
                 type: Sequelize.INTEGER,
                 defaultValue: 0,
@@ -47,6 +55,10 @@ module.exports = {
             },
             is_pro: {
                 type: Sequelize.BOOLEAN,
+            },
+            old_price: {
+                type: Sequelize.DECIMAL(10, 2),
+                defaultValue: 0,
             },
             price: {
                 type: Sequelize.DECIMAL(10, 2),

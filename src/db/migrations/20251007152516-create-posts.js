@@ -61,6 +61,11 @@ module.exports = {
                 type: Sequelize.INTEGER,
                 defaultValue: 0,
             },
+            reading_time: {
+                type: Sequelize.INTEGER,
+                allowNull: false,
+                defaultValue: 0,
+            },
             published_at: {
                 type: Sequelize.DATE,
             },

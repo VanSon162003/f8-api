@@ -73,10 +73,12 @@ module.exports = (sequelize) => {
             as: 'track'
         });
 
-        // Lesson has many UserLessons (1:n)
-        Lesson.hasMany(models.UserLesson, {
-            foreignKey: 'lesson_id',
-            as: 'userLessons'
+        // Lesson belongs to many Users (n:n through UserLesson)
+        Lesson.belongsToMany(models.User, {
+            through: models.UserLesson,
+            foreignKey: "lesson_id",
+            otherKey: "user_id",
+            as: "users",
         });
 
         // Lesson has many Notes (1:n)

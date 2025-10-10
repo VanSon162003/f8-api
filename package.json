@@ -26,6 +26,10 @@
         "slugify": "^1.6.6"
     },
     "_moduleAliases": {
-        "@": "src"
+        "@": "src",
+        "@models": "src/db/models",
+        "@controllers": "src/controllers",
+        "@utils": "src/utils",
+        "@services": "src/service"
     }
 }

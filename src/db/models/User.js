@@ -230,16 +230,25 @@ module.exports = (sequelize) => {
             as: "followers",
         });
 
-        // User has many UserCourses (1:n)
-        User.hasMany(models.UserCourse, {
+        // User belongs to many Courses (n:n through UserCourse)
+        User.belongsToMany(models.Course, {
+            through: models.UserCourse,
             foreignKey: "user_id",
-            as: "userCourses",
+            otherKey: "course_id",
+            as: "courses",
         });
 
-        // User has many UserLessons (1:n)
-        User.hasMany(models.UserLesson, {
+        User.hasMany(models.Course, {
+            foreignKey: "creator_id",
+            as: "createdCourses",
+        });
+
+        // User belongs to many Lessons (n:n through UserLesson)
+        User.belongsToMany(models.Lesson, {
+            through: models.UserLesson,
             foreignKey: "user_id",
-            as: "userLessons",
+            otherKey: "lesson_id",
+            as: "lessons",
         });
 
         // User has many UserActivities (1:n)

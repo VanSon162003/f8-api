@@ -1,137 +1,150 @@
-const { DataTypes } = require('sequelize');
-const { generateUniqueSlug } = require('../../utils/slugGenerator');
+const { DataTypes } = require("sequelize");
+const { generateUniqueSlug } = require("../../utils/slugGenerator");
 
 module.exports = (sequelize) => {
-    const Post = sequelize.define('Post', {
-        id: {
-            type: DataTypes.INTEGER,
-            primaryKey: true,
-            autoIncrement: true
-        },
-        user_id: {
-            type: DataTypes.INTEGER,
-            allowNull: true,
-            references: {
-                model: 'users',
-                key: 'id'
-            }
-        },
-        title: {
-            type: DataTypes.STRING(255),
-            allowNull: true
-        },
-        slug: {
-            type: DataTypes.STRING(255),
-            unique: true,
-            allowNull: true
-        },
-        thumbnail: {
-            type: DataTypes.STRING(255),
-            allowNull: true
-        },
-        description: {
-            type: DataTypes.TEXT,
-            allowNull: true
-        },
-        meta_title: {
-            type: DataTypes.STRING(255),
-            allowNull: true
-        },
-        meta_description: {
-            type: DataTypes.TEXT,
-            allowNull: true
-        },
-        content: {
-            type: DataTypes.TEXT,
-            allowNull: true
-        },
-        status: {
-            type: DataTypes.STRING(50),
-            defaultValue: 'draft'
-        },
-        visibility: {
-            type: DataTypes.STRING(50),
-            defaultValue: 'public'
-        },
-        views_count: {
-            type: DataTypes.INTEGER,
-            defaultValue: 0
-        },
-        likes_count: {
-            type: DataTypes.INTEGER,
-            defaultValue: 0
-        },
-        published_at: {
-            type: DataTypes.DATE,
-            allowNull: true
-        }
-    }, {
-        tableName: 'posts',
-        timestamps: true,
-        createdAt: 'created_at',
-        updatedAt: 'updated_at',
-        hooks: {
-            beforeCreate: async (post) => {
-                // Generate slug from title
-                if (post.title && !post.slug) {
-                    post.slug = await generateUniqueSlug(post.title, Post);
-                }
+    const Post = sequelize.define(
+        "Post",
+        {
+            id: {
+                type: DataTypes.INTEGER,
+                primaryKey: true,
+                autoIncrement: true,
             },
-            beforeUpdate: async (post) => {
-                // Update slug if title changed
-                if (post.changed('title') && post.title) {
-                    post.slug = await generateUniqueSlug(post.title, Post, 'slug', post.id);
-                }
-            }
-        }
-    });
+            user_id: {
+                type: DataTypes.INTEGER,
+                allowNull: true,
+                references: {
+                    model: "users",
+                    key: "id",
+                },
+            },
+            title: {
+                type: DataTypes.STRING(255),
+                allowNull: false,
+            },
+            slug: {
+                type: DataTypes.STRING(255),
+                unique: true,
+                allowNull: true,
+            },
+            thumbnail: {
+                type: DataTypes.STRING(255),
+                allowNull: true,
+            },
+            description: {
+                type: DataTypes.TEXT,
+                allowNull: true,
+            },
+            meta_title: {
+                type: DataTypes.STRING(255),
+                allowNull: true,
+            },
+            meta_description: {
+                type: DataTypes.TEXT,
+                allowNull: true,
+            },
+            content: {
+                type: DataTypes.TEXT,
+                allowNull: true,
+            },
+            status: {
+                type: DataTypes.STRING(50),
+                defaultValue: "draft",
+            },
+            visibility: {
+                type: DataTypes.STRING(50),
+                defaultValue: "public",
+            },
+            views_count: {
+                type: DataTypes.INTEGER,
+                defaultValue: 0,
+            },
+            likes_count: {
+                type: DataTypes.INTEGER,
+                defaultValue: 0,
+            },
+            reading_time: {
+                type: DataTypes.INTEGER,
+                allowNull: false,
+                defaultValue: 0,
+            },
+            published_at: {
+                type: DataTypes.DATE,
+                allowNull: true,
+            },
+        },
+        {
+            tableName: "posts",
+            timestamps: true,
+            createdAt: "created_at",
+            updatedAt: "updated_at",
+            hooks: {
+                // ✅ Gộp lại thành beforeSave (chạy cả khi tạo & cập nhật)
+                beforeSave: async (post) => {
+                    // Tạo slug nếu chưa có hoặc title thay đổi
+                    if (post.title && (!post.slug || post.changed("title"))) {
+                        post.slug = await generateUniqueSlug(
+                            post.title,
+                            Post,
+                            "slug",
+                            post.id
+                        );
+                    }
 
-    // Define associations
+                    // Tự động tính toán thời gian đọc
+                    if (post.content) {
+                        const words = post.content.trim().split(/\s+/).length;
+                        post.reading_time = Math.ceil(words / 200); // 200 từ/phút
+                    } else {
+                        post.reading_time = 0;
+                    }
+                },
+            },
+        }
+    );
+
+    // Associations
     Post.associate = (models) => {
-        // Post belongs to User (n:1)
+        // (n:1) User tạo post
         Post.belongsTo(models.User, {
-            foreignKey: 'user_id',
-            as: 'user'
+            foreignKey: "user_id",
+            as: "user",
         });
 
-        // Post belongs to many Topics (n:n through PostTopic)
+        // (n:n) Post - Topic
         Post.belongsToMany(models.Topic, {
             through: models.PostTopic,
-            foreignKey: 'post_id',
-            otherKey: 'topic_id',
-            as: 'topics'
+            foreignKey: "post_id",
+            otherKey: "topic_id",
+            as: "topics",
         });
 
-        // Post belongs to many Tags (n:n through PostTag)
+        // (n:n) Post - Tag
         Post.belongsToMany(models.Tag, {
             through: models.PostTag,
-            foreignKey: 'post_id',
-            otherKey: 'tag_id',
-            as: 'tags'
+            foreignKey: "post_id",
+            otherKey: "tag_id",
+            as: "tags",
         });
 
-        // Post has many Comments (1:n)
+        // (1:n) Post - Comment
         Post.hasMany(models.Comment, {
-            foreignKey: 'commentable_id',
-            as: 'comments',
-            scope: {
-                commentable_type: 'Post'
-            }
+            foreignKey: "commentable_id",
+            as: "comments",
+            scope: { commentable_type: "Post" },
         });
 
-        // Post has many Likes (1:n)
+        // (1:n) Post - Like
         Post.hasMany(models.Like, {
-            foreignKey: 'likeable_id',
-            as: 'likes',
-            scope: {
-                likeable_type: 'Post'
-            }
+            foreignKey: "likeable_id",
+            as: "likes",
+            scope: { likeable_type: "Post" },
         });
 
-        // Post has many Bookmarks (1:n)
+        // (1:n) Post - Bookmark
         Post.hasMany(models.Bookmark, {
-            foreignKey: 'post_id',
-            as: 'bookmarks'
+            foreignKey: "post_id",
+            as: "bookmarks",
         });
     };
 
