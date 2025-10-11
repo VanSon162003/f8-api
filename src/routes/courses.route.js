@@ -10,6 +10,7 @@ const coursesController = require("../controller/courses.controller");
 
 // Routes
 router.get("/", coursesController.getAll);
+router.get("/:slug", coursesController.getBySlug);
 router.get("/videos", coursesController.getAllVideos);
 
 module.exports = router;

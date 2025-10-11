@@ -28,11 +28,16 @@ module.exports = {
                 type: Sequelize.STRING(255),
                 unique: true,
             },
+            // 🔥 Lưu dạng JSON thay vì TEXT
             what_you_learn: {
-                type: Sequelize.TEXT,
+                type: Sequelize.JSON,
+                allowNull: true,
+                comment: "Mảng chứa các nội dung học được",
             },
             requirement: {
-                type: Sequelize.TEXT,
+                type: Sequelize.JSON,
+                allowNull: true,
+                comment: "Mảng chứa các yêu cầu đầu vào",
             },
             level: {
                 type: Sequelize.STRING(255),
@@ -55,6 +60,7 @@ module.exports = {
             },
             is_pro: {
                 type: Sequelize.BOOLEAN,
+                defaultValue: false,
             },
             old_price: {
                 type: Sequelize.DECIMAL(10, 2),
@@ -67,14 +73,18 @@ module.exports = {
             created_at: {
                 allowNull: false,
                 type: Sequelize.DATE,
+                defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
             },
             updated_at: {
                 allowNull: false,
                 type: Sequelize.DATE,
+                defaultValue: Sequelize.literal(
+                    "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"
+                ),
             },
         });
 
-        // Indexes
+        // ✅ Indexes
         await queryInterface.addIndex("courses", ["slug"], {
             name: "idx_courses_slug",
             unique: true,

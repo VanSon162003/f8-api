@@ -31,13 +31,16 @@ module.exports = (sequelize) => {
                 unique: true,
                 allowNull: true,
             },
+            // ✅ Lưu dạng JSON thay vì TEXT
             what_you_learn: {
-                type: DataTypes.TEXT,
+                type: DataTypes.JSON,
                 allowNull: true,
+                comment: "Mảng nội dung học được",
             },
             requirement: {
-                type: DataTypes.TEXT,
+                type: DataTypes.JSON,
                 allowNull: true,
+                comment: "Mảng yêu cầu đầu vào",
             },
             level: {
                 type: DataTypes.STRING(255),
@@ -61,7 +64,7 @@ module.exports = (sequelize) => {
             },
             is_pro: {
                 type: DataTypes.BOOLEAN,
-                allowNull: true,
+                defaultValue: false,
             },
             old_price: {
                 type: DataTypes.DECIMAL(10, 2),
@@ -79,7 +82,6 @@ module.exports = (sequelize) => {
             updatedAt: "updated_at",
             hooks: {
                 beforeCreate: async (course) => {
-                    // Generate slug from title
                     if (course.title && !course.slug) {
                         course.slug = await generateUniqueSlug(
                             course.title,
@@ -88,7 +90,6 @@ module.exports = (sequelize) => {
                     }
                 },
                 beforeUpdate: async (course) => {
-                    // Update slug if title changed
                     if (course.changed("title") && course.title) {
                         course.slug = await generateUniqueSlug(
                             course.title,
@@ -102,20 +103,21 @@ module.exports = (sequelize) => {
         }
     );
 
-    // Define associations
+    // 🔗 Associations
     Course.associate = (models) => {
-        // Course has many Tracks (1:n)
+        // 1 Course -> n Tracks
         Course.hasMany(models.Track, {
             foreignKey: "course_id",
             as: "tracks",
         });
 
+        // 1 Course -> 1 Creator (User)
         Course.belongsTo(models.User, {
             foreignKey: "creator_id",
             as: "creator",
         });
 
-        // Course belongs to many Users (n:n through UserCourse)
+        // n:n Course <-> User (UserCourse)
         Course.belongsToMany(models.User, {
             through: models.UserCourse,
             foreignKey: "course_id",
@@ -123,13 +125,13 @@ module.exports = (sequelize) => {
             as: "users",
         });
 
-        // Course has many Questions (1:n)
+        // 1 Course -> n Questions
         Course.hasMany(models.Question, {
             foreignKey: "course_id",
             as: "questions",
         });
 
-        // Course belongs to many LearningPaths (n:n through LearningPathCourse)
+        // n:n Course <-> LearningPath (LearningPathCourse)
         Course.belongsToMany(models.LearningPath, {
             through: models.LearningPathCourse,
             foreignKey: "course_id",

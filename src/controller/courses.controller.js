@@ -10,6 +10,16 @@ const getAll = async (req, res) => {
     }
 };
 
+const getBySlug = async (req, res) => {
+    try {
+        const data = await coursesService.getBySlug(req.params.slug);
+
+        response.success(res, 200, data);
+    } catch (error) {
+        response.error(res, 500, error.message);
+    }
+};
+
 const getAllVideos = async (req, res) => {
     try {
         const data = await coursesService.getAllVideos();
@@ -23,4 +33,5 @@ const getAllVideos = async (req, res) => {
 module.exports = {
     getAll,
     getAllVideos,
+    getBySlug,
 };

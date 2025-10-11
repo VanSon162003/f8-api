@@ -25,7 +25,7 @@ module.exports = {
             const titleBase = courseTitles[i];
             const isPro = faker.datatype.boolean();
 
-            // Tạo slug duy nhất
+            // 🧩 Tạo slug duy nhất
             let slug = faker.helpers.slugify(titleBase.toLowerCase());
             let suffix = 1;
             while (usedSlugs.has(slug)) {
@@ -34,22 +34,41 @@ module.exports = {
             }
             usedSlugs.add(slug);
 
-            // Sinh giá cho khóa học
+            // 💰 Sinh giá cho khoá học
             let price = 0;
             let old_price = 0;
             if (isPro) {
-                price = faker.number.float({
-                    min: 150000,
-                    max: 800000,
-                    precision: 1000,
-                });
+                price = faker.number.int({ min: 150000, max: 800000 });
                 old_price = Math.round(
                     price * faker.number.float({ min: 1.1, max: 1.4 })
                 );
             }
 
-            // Random creator_id (giả sử đã có 5 users trong bảng users)
+            // 👤 Giả lập creator_id (giả sử đã có 5 users trong bảng users)
             const creator_id = faker.number.int({ min: 1, max: 5 });
+
+            // 🧠 Sinh ngẫu nhiên các nội dung học và yêu cầu
+            const what_you_learn = faker.helpers.arrayElements(
+                [
+                    "Hiểu cách hoạt động của ngôn ngữ",
+                    "Xây dựng ứng dụng thực tế",
+                    "Tối ưu mã nguồn",
+                    "Hiểu rõ về DOM và sự kiện",
+                    "Sử dụng API và xử lý JSON",
+                    "Tổ chức và quản lý dự án",
+                ],
+                faker.number.int({ min: 3, max: 5 })
+            );
+
+            const requirement = faker.helpers.arrayElements(
+                [
+                    "Biết HTML, CSS cơ bản",
+                    "Có kiến thức JavaScript nền tảng",
+                    "Có laptop cá nhân",
+                    "Tinh thần học hỏi và kiên trì",
+                ],
+                faker.number.int({ min: 2, max: 3 })
+            );
 
             courses.push({
                 creator_id,
@@ -59,8 +78,8 @@ module.exports = {
                     category: "technology",
                 }),
                 slug,
-                what_you_learn: faker.lorem.sentences(3),
-                requirement: "Kiến thức cơ bản về lập trình",
+                what_you_learn: JSON.stringify(what_you_learn), // ✅ chuyển sang JSON string
+                requirement: JSON.stringify(requirement), // ✅ chuyển sang JSON string
                 level: faker.helpers.arrayElement([
                     "beginner",
                     "intermediate",
