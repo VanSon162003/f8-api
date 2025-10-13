@@ -1,3 +1,5 @@
+require("dotenv").config();
+
 const { expressjwt: jwt } = require("express-jwt");
 const jwks = require("jwks-rsa");
 
@@ -11,8 +13,7 @@ const checkAuth0 = jwt({
     audience: process.env.AUTH0_AUDIENCE,
     issuer: `https://${process.env.AUTH0_DOMAIN}/`,
     algorithms: ["RS256"],
-    requestProperty: "user", // thông tin user sẽ được lưu vào req.user
-    credentialsRequired: true, // nếu không có token sẽ báo lỗi 401
+    requestProperty: "user",
 });
 
 module.exports = checkAuth0;

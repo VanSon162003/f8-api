@@ -94,8 +94,6 @@ const logout = async (data) => {
 };
 
 const authenticateAuth0 = async (data) => {
-    console.log(data);
-
     let type = "";
     let result = null;
     const subType = data.sub.split("|")[0];

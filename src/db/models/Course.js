@@ -138,6 +138,12 @@ module.exports = (sequelize) => {
             otherKey: "learning_path_id",
             as: "learningPaths",
         });
+
+        // 1 Course -> nhiều UserCourseProgress
+        Course.hasMany(models.UserCourseProgress, {
+            foreignKey: "course_id",
+            as: "userProgress",
+        });
     };
 
     return Course;

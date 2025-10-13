@@ -181,6 +181,10 @@ module.exports = (sequelize) => {
             as: "comments",
         });
 
+        User.hasMany(models.CommentReaction, {
+            foreignKey: "user_id",
+            as: "commentReactions",
+        });
         // User has many Notes (1:n)
         User.hasMany(models.Note, {
             foreignKey: "user_id",
@@ -241,6 +245,14 @@ module.exports = (sequelize) => {
         User.hasMany(models.Course, {
             foreignKey: "creator_id",
             as: "createdCourses",
+        });
+
+        // n:n — User <-> Course qua UserCourseProgress
+        User.belongsToMany(models.Course, {
+            through: models.UserCourseProgress,
+            foreignKey: "user_id",
+            otherKey: "course_id",
+            as: "coursesProgress",
         });
 
         // User belongs to many Lessons (n:n through UserLesson)
