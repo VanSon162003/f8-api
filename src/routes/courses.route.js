@@ -14,5 +14,9 @@ router.get("/", coursesController.getAll);
 router.get("/:slug", checkAuth, coursesController.getBySlug);
 router.get("/videos", coursesController.getAllVideos);
 router.post("/register", checkAuth, coursesController.registerCourse);
+router.get("/:courseId/progress", checkAuth, coursesController.getProgress);
+router.post("/:courseId/progress", checkAuth, coursesController.updateProgress);
+router.get("/:courseId/user-lessons", checkAuth, coursesController.getUserLessonProgress);
+router.post("/user-lesson-progress", checkAuth, coursesController.updateUserLessonProgress);
 
 module.exports = router;

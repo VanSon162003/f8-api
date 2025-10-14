@@ -1,4 +1,12 @@
-const { Course, User, Video, Track, Lesson } = require("@models");
+const {
+    Course,
+    User,
+    Video,
+    Track,
+    Lesson,
+    UserLesson,
+    UserCourseProgress,
+} = require("@models");
 const { where } = require("sequelize");
 
 const getAll = async () => {
@@ -131,4 +139,132 @@ const registerCourse = async (currentUser, courseId) => {
     }
 };
 
-module.exports = { getAll, getAllVideos, getBySlug, registerCourse };
+const getTracksByCourseId = async (id) => {
+    const tracks = await Track.findAll({
+        where: { course_id: id },
+        include: [
+            {
+                model: Lesson,
+                as: "lessons",
+            },
+        ],
+    });
+
+    return tracks;
+};
+
+const getProgress = async (currentUser, courseId) => {
+    if (!currentUser) {
+        throw new Error("Bạn cần đăng nhập trước khi lấy ra progress");
+    }
+    const tracks = await getTracksByCourseId(courseId);
+
+    const totalLessonByCourse = tracks.flatMap((item) => item.lessons).length;
+
+    const course = await Course.findOne({
+        where: {
+            id: courseId,
+        },
+        attributes: ["id"],
+        include: {
+            model: UserCourseProgress,
+            as: "userProgress",
+            where: {
+                user_id: currentUser?.id || 0,
+            },
+        },
+    });
+
+    return {
+        ...course.toJSON(),
+        totalLessonByCourse,
+    };
+};
+
+const updateProgress = async () => {};
+
+const getUserLessonProgress = async (currentUser, courseId) => {
+    try {
+        if (!currentUser) {
+            throw new Error("Bạn cần đăng nhập trước khi lấy ra progress");
+        }
+
+        const course = await Course.findOne({
+            where: { id: courseId },
+            include: {
+                model: Track,
+                as: "tracks",
+                include: {
+                    model: Lesson,
+                    as: "lessons",
+                    include: {
+                        model: UserLesson,
+                        as: "userLessons",
+                        where: { user_id: currentUser.id },
+                        required: false,
+                    },
+                },
+            },
+        });
+
+        if (!course) {
+            throw new Error("Khóa học không tồn tại");
+        }
+
+        return course;
+    } catch (error) {
+        throw new Error(error);
+    }
+};
+
+const updateUserLessonProgress = async (currentUser, lessonId, progressData) => {
+    try {
+        if (!currentUser) {
+            throw new Error("Bạn cần đăng nhập trước khi cập nhật progress");
+        }
+
+        const { watchDuration, lastPosition, completed } = progressData;
+
+        // Tìm hoặc tạo UserLesson record
+        const [userLesson, created] = await UserLesson.findOrCreate({
+            where: {
+                user_id: currentUser.id,
+                lesson_id: lessonId,
+            },
+            defaults: {
+                user_id: currentUser.id,
+                lesson_id: lessonId,
+                watch_duration: watchDuration || 0,
+                last_position: lastPosition || 0,
+                completed: completed || false,
+                completed_at: completed ? new Date() : null,
+            },
+        });
+
+        if (!created) {
+            // Cập nhật existing record
+            await userLesson.update({
+                watch_duration: watchDuration || userLesson.watch_duration,
+                last_position: lastPosition || userLesson.last_position,
+                completed: completed !== undefined ? completed : userLesson.completed,
+                completed_at: completed ? new Date() : userLesson.completed_at,
+            });
+        }
+
+        return userLesson;
+    } catch (error) {
+        throw new Error(error);
+    }
+};
+
+module.exports = {
+    getAll,
+    getAllVideos,
+    getTracksByCourseId,
+    getBySlug,
+    registerCourse,
+    updateProgress,
+    getProgress,
+    getUserLessonProgress,
+    updateUserLessonProgress,
+};

@@ -131,6 +131,12 @@ module.exports = (sequelize) => {
             foreignKey: "current_lesson_id",
             as: "currentInProgress",
         });
+
+        // 1:n — Lesson có nhiều UserLesson
+        Lesson.hasMany(models.UserLesson, {
+            foreignKey: "lesson_id",
+            as: "userLessons",
+        });
     };
 
     return Lesson;

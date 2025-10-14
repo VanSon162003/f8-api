@@ -53,9 +53,68 @@ const registerCourse = async (req, res) => {
     }
 };
 
+const getProgress = async (req, res) => {
+    try {
+        const data = await coursesService.getProgress(
+            req.user,
+            req.params.courseId
+        );
+
+        response.success(res, 200, data);
+    } catch (error) {
+        response.error(res, 500, error.message);
+    }
+};
+const updateProgress = async (req, res) => {
+    try {
+        const data = await coursesService.updateProgress(
+            req.user,
+            req.params.courseId,
+            req.body.lesson_id
+        );
+
+        response.success(res, 200, data);
+    } catch (error) {
+        response.error(res, 500, error.message);
+    }
+};
+
+const getUserLessonProgress = async (req, res) => {
+    try {
+        const data = await coursesService.getUserLessonProgress(
+            req.user,
+            req.params.courseId
+        );
+
+        response.success(res, 200, data);
+    } catch (error) {
+        response.error(res, 500, error.message);
+    }
+};
+
+const updateUserLessonProgress = async (req, res) => {
+    try {
+        const { lessonId, watchDuration, lastPosition, completed } = req.body;
+        
+        const data = await coursesService.updateUserLessonProgress(
+            req.user,
+            lessonId,
+            { watchDuration, lastPosition, completed }
+        );
+
+        response.success(res, 200, data);
+    } catch (error) {
+        response.error(res, 500, error.message);
+    }
+};
+
 module.exports = {
     getAll,
     getAllVideos,
     getBySlug,
     registerCourse,
+    getProgress,
+    updateProgress,
+    getUserLessonProgress,
+    updateUserLessonProgress,
 };

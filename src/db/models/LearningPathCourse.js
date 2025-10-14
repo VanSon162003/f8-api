@@ -25,7 +25,7 @@ module.exports = (sequelize) => {
         }
     }, {
         tableName: 'learning_path_course',
-        timestamps: true
+        timestamps: false
     });
 
     return LearningPathCourse;
