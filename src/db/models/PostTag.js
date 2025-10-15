@@ -9,7 +9,7 @@ module.exports = (sequelize) => {
         },
         post_id: {
             type: DataTypes.INTEGER,
-            allowNull: true,
+            allowNull: false,
             references: {
                 model: 'posts',
                 key: 'id'
@@ -17,7 +17,7 @@ module.exports = (sequelize) => {
         },
         tag_id: {
             type: DataTypes.INTEGER,
-            allowNull: true,
+            allowNull: false,
             references: {
                 model: 'tags',
                 key: 'id'
@@ -25,7 +25,13 @@ module.exports = (sequelize) => {
         }
     }, {
         tableName: 'post_tag',
-        timestamps: true
+        timestamps: false,
+        indexes: [
+            {
+                unique: true,
+                fields: ['post_id', 'tag_id']
+            }
+        ]
     });
 
     return PostTag;

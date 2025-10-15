@@ -1,5 +1,5 @@
 const response = require("../utils/response");
-const { User, AccessToken } = require("../db/models");
+const { User, AccessToken, Bookmark } = require("../db/models");
 const jwtService = require("../service/jwt.service");
 
 async function checkAuth(req, res, next) {
@@ -33,6 +33,11 @@ async function checkAuth(req, res, next) {
             //     "created_at",
             // ],
             where: { id: payload.userId },
+            // include: {
+            //     model: Bookmark,
+            //     as: "bookmarks",
+            //     attributes: ["id"],
+            // },
             // include: [
             //     {
             //         model: UserSetting,

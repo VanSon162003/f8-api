@@ -13,16 +13,30 @@ module.exports = {
 
         const now = new Date();
 
-        await queryInterface.bulkInsert(
-            "reaction_types",
-            reactions.map((r) => ({
-                id: r.id,
-                label: r.label,
-                icon: r.icon,
-                created_at: now,
-                updated_at: now,
-            }))
-        );
+        try {
+            // Remove existing rows to avoid duplicate primary key errors on reseed
+            await queryInterface.bulkDelete("reaction_types", null, {});
+
+            await queryInterface.bulkInsert(
+                "reaction_types",
+                reactions.map((r) => ({
+                    id: r.id,
+                    label: r.label,
+                    icon: r.icon,
+                    created_at: now,
+                    updated_at: now,
+                }))
+            );
+        } catch (error) {
+            // Print detailed validation errors if present
+            console.error("Seeder reaction-types error:", error);
+            if (error.errors) {
+                error.errors.forEach((e) =>
+                    console.error(e.message, e.path, e.value)
+                );
+            }
+            throw error;
+        }
     },
 
     async down(queryInterface, Sequelize) {

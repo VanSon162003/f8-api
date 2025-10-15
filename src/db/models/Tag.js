@@ -1,4 +1,5 @@
 const { DataTypes } = require('sequelize');
+const { generateUniqueSlug } = require('../../utils/slugGenerator');
 
 module.exports = (sequelize) => {
     const Tag = sequelize.define('Tag', {
@@ -9,17 +10,22 @@ module.exports = (sequelize) => {
         },
         name: {
             type: DataTypes.STRING(50),
+            allowNull: true,
             unique: true,
-            allowNull: true
+            validate: {
+                notEmpty: true,
+                len: [1, 50]
+            }
         }
     }, {
         tableName: 'tags',
-        timestamps: true
+        timestamps: true,
+        createdAt: 'created_at',
+        updatedAt: 'updated_at',
     });
 
-    // Define associations
     Tag.associate = (models) => {
-        // Tag belongs to many Posts (n:n through PostTag)
+        // Tag belongs to many Posts through PostTag
         Tag.belongsToMany(models.Post, {
             through: models.PostTag,
             foreignKey: 'tag_id',
