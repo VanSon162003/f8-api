@@ -25,5 +25,9 @@ router.post("/verify-email", authController.verifyEmail);
 router.post("/resend-email", authController.resendEmail);
 
 router.post("/protected", checkAuth0, authController.authenticateAuth0);
+router.get("/:username", authController.getUserProfile);
+// Follow / Unfollow
+router.post("/:username/follow", checkAuth, authController.followUser);
+router.delete("/:username/follow", checkAuth, authController.unfollowUser);
 
 module.exports = router;

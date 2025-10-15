@@ -13,6 +13,21 @@ const getMe = async (req, res) => {
     }
 };
 
+const getUserProfile = async (req, res) => {
+    try {
+        const { username } = req.params;
+        const user = await authService.getUserProfile(username);
+
+        if (!user) {
+            return response.error(res, 404, "User not found");
+        }
+
+        response.success(res, 200, user);
+    } catch (error) {
+        response.error(res, 500, error.message);
+    }
+};
+
 const register = async (req, res) => {
     try {
         const { token } = await authService.register(req.body);
@@ -102,6 +117,34 @@ const refreshToken = async (req, res) => {
     }
 };
 
+const followUser = async (req, res) => {
+    try {
+        const username = req.params.username;
+        const currentUser = req.user;
+        if (!currentUser) return response.error(res, 401, "Unauthorized");
+
+        await authService.followUser(currentUser, username);
+
+        response.success(res, 200, "followed");
+    } catch (error) {
+        response.error(res, 500, error.message);
+    }
+};
+
+const unfollowUser = async (req, res) => {
+    try {
+        const username = req.params.username;
+        const currentUser = req.user;
+        if (!currentUser) return response.error(res, 401, "Unauthorized");
+
+        await authService.unfollowUser(currentUser, username);
+
+        response.success(res, 200, "unfollowed");
+    } catch (error) {
+        response.error(res, 500, error.message);
+    }
+};
+
 module.exports = {
     getMe,
     register,
@@ -112,4 +155,7 @@ module.exports = {
     resendEmail,
     forgotPassword,
     authenticateAuth0,
+    getUserProfile,
+    followUser,
+    unfollowUser,
 };

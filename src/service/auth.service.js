@@ -1,10 +1,12 @@
 const dotenv = require("dotenv");
 dotenv.config();
 
-const { User, AccessToken, Queue } = require("@/db/models");
+const db = require("@/db/models");
+const { User, AccessToken, Queue, UserActivity, Course } = db;
 const bcrypt = require("@/utils/bcrypt");
 const jwt = require("./jwt.service");
 const jwtService = require("./jwt.service");
+const { Op } = require("sequelize");
 
 const refreshTokenService = require("./refreshToken.service");
 const { where } = require("sequelize");
@@ -236,6 +238,116 @@ const refreshAccessToken = async (refreshTokenString) => {
     };
 };
 
+const getUserProfile = async (username) => {
+    const cleanUsername = username.replace(/^@/, "");
+    const user = await User.findOne({
+        where: { username: cleanUsername },
+
+        include: [
+            {
+                model: Course,
+                as: "courses",
+                through: { attributes: [] },
+                // attributes: ['id', 'name', 'thumbnail', 'price', 'is_pro']
+            },
+            {
+                model: UserActivity,
+                as: "activities",
+                limit: 10,
+                order: [["created_at", "DESC"]],
+                // attributes: ['id', 'activity_type', 'content', 'created_at']
+            },
+            {
+                model: User,
+                as: "followers",
+                attributes: ["id", "username", "avatar", "full_name"],
+                through: { attributes: [] },
+            },
+            {
+                model: User,
+                as: "following",
+                attributes: ["id", "username", "avatar", "full_name"],
+                through: { attributes: [] },
+            },
+        ],
+    });
+
+    if (!user) {
+        throw new Error("User not found");
+    }
+
+    return user;
+};
+
+const followUser = async (currentUser, username) => {
+    const cleanUsername = username.replace(/^@/, "");
+    const target = await User.findOne({ where: { username: cleanUsername } });
+    if (!target) throw new Error("User not found");
+
+    if (currentUser.id === target.id) {
+        throw new Error("Cannot follow yourself");
+    }
+
+    // check if already following
+    const existing = await db.Follow.findOne({
+        where: { following_id: currentUser.id, followed_id: target.id },
+    });
+
+    if (existing) return true; // already following
+
+    await db.Follow.create({
+        following_id: currentUser.id,
+        followed_id: target.id,
+    });
+
+    // update counts
+    await User.increment({ follower_count: 1 }, { where: { id: target.id } });
+    await User.increment(
+        { following_count: 1 },
+        { where: { id: currentUser.id } }
+    );
+
+    // Optionally: create notification/queue job
+    try {
+        await Queue.create({
+            type: "sendNewFollowerEmail",
+            payload: { followerId: currentUser.id, followingId: target.id },
+        });
+    } catch (err) {
+        // ignore queue errors
+        console.error("Queue job error (follow):", err.message);
+    }
+
+    return true;
+};
+
+const unfollowUser = async (currentUser, username) => {
+    const cleanUsername = username.replace(/^@/, "");
+    const target = await User.findOne({ where: { username: cleanUsername } });
+    if (!target) throw new Error("User not found");
+
+    if (currentUser.id === target.id) {
+        throw new Error("Cannot unfollow yourself");
+    }
+
+    const existing = await db.Follow.findOne({
+        where: { following_id: currentUser.id, followed_id: target.id },
+    });
+
+    if (!existing) return true; // nothing to do
+
+    await existing.destroy();
+
+    // update counts
+    await User.decrement({ follower_count: 1 }, { where: { id: target.id } });
+    await User.decrement(
+        { following_count: 1 },
+        { where: { id: currentUser.id } }
+    );
+
+    return true;
+};
+
 module.exports = {
     register,
     login,
@@ -245,4 +357,7 @@ module.exports = {
     resendEmail,
     forgotPassword,
     authenticateAuth0,
+    getUserProfile,
+    followUser,
+    unfollowUser,
 };
