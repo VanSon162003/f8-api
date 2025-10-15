@@ -140,6 +140,13 @@ const create = async (data, currentUser) => {
             parent_id: data.parent_id || null,
             content: data.content,
         });
+        // Ghi nhận hoạt động comment
+        const { updateUserActivity } = require("./auth.service");
+        if (data.type === "post") {
+            await updateUserActivity(currentUser.id, "comment_post");
+        } else if (data.type === "question") {
+            await updateUserActivity(currentUser.id, "comment_question");
+        }
         return comment;
     } catch (error) {
         throw new Error(error);

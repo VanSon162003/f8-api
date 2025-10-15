@@ -1,4 +1,5 @@
 const { Bookmark, Post, User } = require("@models");
+const { updateUserActivity } = require("./auth.service");
 
 // Toggle bookmark for a post
 const toggleBookmark = async (postId, userId) => {
@@ -14,6 +15,7 @@ const toggleBookmark = async (postId, userId) => {
         if (existingBookmark) {
             // Remove bookmark
             await existingBookmark.destroy();
+            await updateUserActivity(userId, "unbookmark");
             return {
                 bookmarked: false,
                 message: "Bookmark removed successfully",
@@ -24,6 +26,7 @@ const toggleBookmark = async (postId, userId) => {
                 user_id: userId,
                 post_id: postId,
             });
+            await updateUserActivity(userId, "bookmark");
             return { bookmarked: true, message: "Bookmarked successfully" };
         }
     } catch (error) {

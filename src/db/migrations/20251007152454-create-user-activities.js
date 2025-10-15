@@ -12,7 +12,6 @@ module.exports = {
             user_id: {
                 type: Sequelize.INTEGER,
                 allowNull: false,
-                unique: true,
                 references: {
                     model: "users",
                     key: "id",
@@ -51,7 +50,6 @@ module.exports = {
         // Indexes
         await queryInterface.addIndex("user_activities", ["user_id"], {
             name: "idx_user_activities_user_id",
-            unique: true,
         });
         await queryInterface.addIndex("user_activities", ["activity_date"], {
             name: "idx_user_activities_date",

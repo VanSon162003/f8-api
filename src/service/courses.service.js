@@ -133,6 +133,10 @@ const registerCourse = async (currentUser, courseId) => {
             },
         });
 
+        // Ghi nhận hoạt động đăng ký khoá học
+        const { updateUserActivity } = require("./auth.service");
+        await updateUserActivity(currentUser.id, "register_course");
+
         return true;
     } catch (error) {
         throw new Error(error);
@@ -217,7 +221,11 @@ const getUserLessonProgress = async (currentUser, courseId) => {
     }
 };
 
-const updateUserLessonProgress = async (currentUser, lessonId, progressData) => {
+const updateUserLessonProgress = async (
+    currentUser,
+    lessonId,
+    progressData
+) => {
     try {
         if (!currentUser) {
             throw new Error("Bạn cần đăng nhập trước khi cập nhật progress");
@@ -246,11 +254,17 @@ const updateUserLessonProgress = async (currentUser, lessonId, progressData) => 
             await userLesson.update({
                 watch_duration: watchDuration || userLesson.watch_duration,
                 last_position: lastPosition || userLesson.last_position,
-                completed: completed !== undefined ? completed : userLesson.completed,
+                completed:
+                    completed !== undefined ? completed : userLesson.completed,
                 completed_at: completed ? new Date() : userLesson.completed_at,
             });
         }
 
+        // Nếu hoàn thành bài học thì ghi nhận hoạt động
+        if (completed) {
+            const { updateUserActivity } = require("./auth.service");
+            await updateUserActivity(currentUser.id, "complete_lesson");
+        }
         return userLesson;
     } catch (error) {
         throw new Error(error);

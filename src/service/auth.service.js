@@ -1,3 +1,24 @@
+// Cập nhật hoặc tạo mới user_activity cho user theo ngày và loại hành động
+const updateUserActivity = async (userId, activityType = "all") => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const [activity, created] = await UserActivity.findOrCreate({
+        where: {
+            user_id: userId,
+            activity_date: today,
+        },
+        defaults: {
+            user_id: userId,
+            activity_date: today,
+            activity_type: activityType,
+            activity_count: 1,
+        },
+    });
+    if (!created) {
+        activity.activity_count += 1;
+        await activity.save();
+    }
+};
 const dotenv = require("dotenv");
 dotenv.config();
 
@@ -240,6 +261,7 @@ const refreshAccessToken = async (refreshTokenString) => {
 
 const getUserProfile = async (username) => {
     const cleanUsername = username.replace(/^@/, "");
+
     const user = await User.findOne({
         where: { username: cleanUsername },
 
@@ -307,6 +329,9 @@ const followUser = async (currentUser, username) => {
         { where: { id: currentUser.id } }
     );
 
+    // Ghi nhận hoạt động follow
+    await updateUserActivity(currentUser.id, "follow");
+
     // Optionally: create notification/queue job
     try {
         await Queue.create({
@@ -345,6 +370,9 @@ const unfollowUser = async (currentUser, username) => {
         { where: { id: currentUser.id } }
     );
 
+    // Ghi nhận hoạt động unfollow
+    await updateUserActivity(currentUser.id, "unfollow");
+
     return true;
 };
 
@@ -360,4 +388,5 @@ module.exports = {
     getUserProfile,
     followUser,
     unfollowUser,
+    updateUserActivity,
 };

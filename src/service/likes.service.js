@@ -1,4 +1,5 @@
-const { Like } = require('@models');
+const { Like } = require("@models");
+const { updateUserActivity } = require("./auth.service");
 
 // Toggle like for a post
 const toggleLike = async (likeableType, likeableId, userId) => {
@@ -8,22 +9,24 @@ const toggleLike = async (likeableType, likeableId, userId) => {
             where: {
                 user_id: userId,
                 likeable_type: likeableType,
-                likeable_id: likeableId
-            }
+                likeable_id: likeableId,
+            },
         });
 
         if (existingLike) {
             // Unlike - remove the like
             await existingLike.destroy();
-            return { liked: false, message: 'Unliked successfully' };
+            await updateUserActivity(userId, "unlike");
+            return { liked: false, message: "Unliked successfully" };
         } else {
             // Like - create new like
             await Like.create({
                 user_id: userId,
                 likeable_type: likeableType,
-                likeable_id: likeableId
+                likeable_id: likeableId,
             });
-            return { liked: true, message: 'Liked successfully' };
+            await updateUserActivity(userId, "like");
+            return { liked: true, message: "Liked successfully" };
         }
     } catch (error) {
         throw new Error(error.message);
@@ -37,8 +40,8 @@ const checkUserLike = async (likeableType, likeableId, userId) => {
             where: {
                 user_id: userId,
                 likeable_type: likeableType,
-                likeable_id: likeableId
-            }
+                likeable_id: likeableId,
+            },
         });
 
         return { liked: !!like };
@@ -53,8 +56,8 @@ const getLikeCount = async (likeableType, likeableId) => {
         const count = await Like.count({
             where: {
                 likeable_type: likeableType,
-                likeable_id: likeableId
-            }
+                likeable_id: likeableId,
+            },
         });
 
         return { count };
@@ -66,5 +69,5 @@ const getLikeCount = async (likeableType, likeableId) => {
 module.exports = {
     toggleLike,
     checkUserLike,
-    getLikeCount
+    getLikeCount,
 };
