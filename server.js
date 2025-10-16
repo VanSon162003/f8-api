@@ -14,7 +14,10 @@ const path = require("path");
 const app = express();
 const port = 3001;
 
-app.use("/api/v1/uploads", express.static(path.join(__dirname, "uploads")));
+app.use(
+    "/api/v1/uploads/",
+    express.static(path.join(__dirname, "src", "uploads"))
+);
 
 app.use(cors());
 app.use(express.static("public"));

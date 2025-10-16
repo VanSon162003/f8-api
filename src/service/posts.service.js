@@ -125,10 +125,29 @@ const getPostBySlug = async (slug) => {
     }
 };
 
-const createPost = async (postData, authorId) => {
+const fs = require("fs");
+const path = require("path");
+const { json } = require("express");
+
+const createPost = async (file, postData, authorId) => {
     try {
-        const { title, content, description, thumbnail, status, tags } =
+        const { title, content, description, status, tags, visibility } =
             postData;
+        let thumbnail = postData.thumbnail;
+
+        // Nếu có file upload thì lưu vào src/uploads/imgs
+        if (file) {
+            const srcDir = path.join(__dirname, "../uploads/imgs");
+            if (!fs.existsSync(srcDir)) {
+                fs.mkdirSync(srcDir, { recursive: true });
+            }
+            const ext = path.extname(file.originalname);
+            const basename = path.basename(file.originalname, ext);
+            const filename = `${basename}-${Date.now()}${ext}`;
+            const destPath = path.join(srcDir, filename);
+            fs.copyFileSync(file.path, destPath);
+            thumbnail = `uploads/imgs/${filename}`.replace(/\\/g, "/");
+        }
 
         // Create post
         const post = await Post.create({
@@ -137,22 +156,23 @@ const createPost = async (postData, authorId) => {
             description,
             thumbnail,
             status: status || "draft",
+            visibility,
             user_id: authorId,
+            views_count: 0,
         });
 
         // Handle tags
         if (tags && tags.length > 0) {
-            await handlePostTags(post.id, tags);
+            await handlePostTags(post.id, JSON.parse(tags));
         }
 
-        // Return post with associations
-        return await getPostById(post.id);
+        return post;
     } catch (error) {
         throw new Error(error.message);
     }
 };
 
-const updatePost = async (id, postData, authorId) => {
+const updatePost = async (id, file, postData, authorId) => {
     try {
         const post = await Post.findByPk(id);
 
@@ -165,8 +185,22 @@ const updatePost = async (id, postData, authorId) => {
             throw new Error("Unauthorized to update this post");
         }
 
-        const { title, content, description, thumbnail, status, tags } =
-            postData;
+        const { title, content, description, status, tags } = postData;
+        let thumbnail = postData.thumbnail;
+
+        // Nếu có file upload thì lưu vào src/uploads/imgs
+        if (file) {
+            const srcDir = path.join(__dirname, "../uploads/imgs");
+            if (!fs.existsSync(srcDir)) {
+                fs.mkdirSync(srcDir, { recursive: true });
+            }
+            const ext = path.extname(file.originalname);
+            const basename = path.basename(file.originalname, ext);
+            const filename = `${basename}-${Date.now()}${ext}`;
+            const destPath = path.join(srcDir, filename);
+            fs.copyFileSync(file.path, destPath);
+            thumbnail = `uploads/imgs/${filename}`.replace(/\\/g, "/");
+        }
 
         // Update post
         await post.update({
@@ -216,35 +250,40 @@ const deletePost = async (id, authorId) => {
     }
 };
 
-const handlePostTags = async (postId, tagNames) => {
+const handlePostTags = async (postId, tagNames = []) => {
     try {
-        // Remove existing tags
-        await PostTag.destroy({
-            where: { post_id: postId },
+        if (!Array.isArray(tagNames) || tagNames.length === 0) return;
+
+        const cleanTagNames = tagNames
+            .map((name) => name.trim().toLowerCase())
+            .filter((name) => name.length > 0);
+
+        const existingTags = await Tag.findAll({
+            where: {
+                name: cleanTagNames,
+            },
         });
 
-        if (!tagNames || tagNames.length === 0) {
-            return;
-        }
+        const existingTagNames = existingTags.map((tag) => tag.name);
 
-        // Find or create tags
-        const tags = [];
-        for (const tagName of tagNames) {
-            const [tag, created] = await Tag.findOrCreate({
-                where: { name: tagName.trim() },
-                defaults: { name: tagName.trim() },
-            });
-            tags.push(tag);
-        }
+        const newTagNames = cleanTagNames.filter(
+            (name) => !existingTagNames.includes(name)
+        );
 
-        // Associate tags with post
-        for (const tag of tags) {
-            await PostTag.create({
-                post_id: postId,
-                tag_id: tag.id,
-            });
-        }
+        const newTags = await Promise.all(
+            newTagNames.map((name) => Tag.create({ name }))
+        );
+
+        const allTags = [...existingTags, ...newTags];
+
+        const post = await Post.findByPk(postId);
+        if (!post) throw new Error("Post not found");
+
+        await post.addTags(allTags);
+
+        return allTags;
     } catch (error) {
+        console.error("❌ handlePostTags error:", error);
         throw new Error(error.message);
     }
 };

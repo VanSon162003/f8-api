@@ -3,13 +3,14 @@ const router = express.Router();
 
 const postsController = require("../controller/posts.controller");
 const checkAuth = require("@/middlewares/checkAuth");
+const upload = require("../middlewares/upload");
 const {
     validateCreatePost,
     validateUpdatePost,
     validateGetPosts,
     validateId,
     validateSlug,
-    validateTagSlug
+    validateTagSlug,
 } = require("../validators/post.validator");
 
 // Public routes
@@ -19,8 +20,22 @@ router.get("/tag/:tagName", validateGetPosts, postsController.getPostsByTag);
 
 // Protected routes (require authentication)
 router.get("/:id", validateId, postsController.getPostById);
-router.post("/", checkAuth, validateCreatePost, postsController.createPost);
-router.put("/:id", checkAuth, validateId, validateUpdatePost, postsController.updatePost);
+router.post(
+    "/",
+
+    upload.single("thumbnail"),
+    checkAuth,
+
+    postsController.createPost
+);
+router.put(
+    "/:id",
+    upload.single("thumbnail"),
+    checkAuth,
+    validateId,
+    validateUpdatePost,
+    postsController.updatePost
+);
 router.delete("/:id", checkAuth, validateId, postsController.deletePost);
 
 module.exports = router;

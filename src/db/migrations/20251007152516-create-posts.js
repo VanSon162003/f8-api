@@ -46,9 +46,11 @@ module.exports = {
                 defaultValue: null,
             },
             status: {
-                type: Sequelize.STRING(50),
+                type: Sequelize.ENUM("draft", "published", "scheduled"),
+                allowNull: false,
                 defaultValue: "draft",
             },
+
             visibility: {
                 type: Sequelize.STRING(50),
                 defaultValue: "public",
