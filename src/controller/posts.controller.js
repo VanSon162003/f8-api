@@ -23,6 +23,22 @@ const getAllPosts = async (req, res) => {
     }
 };
 
+const getPostsMe = async (req, res) => {
+    try {
+        const { page = 1, limit = 10 } = req.query;
+
+        const data = await postsService.getPostsMe(
+            parseInt(page),
+            parseInt(limit),
+            req.user
+        );
+
+        response.success(res, 200, data);
+    } catch (error) {
+        response.error(res, 500, error.message);
+    }
+};
+
 const getPostById = async (req, res) => {
     try {
         const { id } = req.params;
@@ -140,4 +156,5 @@ module.exports = {
     updatePost,
     deletePost,
     getPostsByTag,
+    getPostsMe,
 };

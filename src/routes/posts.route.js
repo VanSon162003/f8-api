@@ -17,6 +17,7 @@ const {
 router.get("/", validateGetPosts, postsController.getAllPosts);
 router.get("/slug/:slug", validateSlug, postsController.getPostBySlug);
 router.get("/tag/:tagName", validateGetPosts, postsController.getPostsByTag);
+router.get("/me/", checkAuth, postsController.getPostsMe);
 
 // Protected routes (require authentication)
 router.get("/:id", validateId, postsController.getPostById);

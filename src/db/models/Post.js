@@ -52,6 +52,15 @@ module.exports = (sequelize) => {
                 defaultValue: 0,
                 allowNull: true,
             },
+
+            meta_title: {
+                type: DataTypes.STRING(255),
+                defaultValue: null,
+            },
+            meta_description: {
+                type: DataTypes.TEXT,
+                defaultValue: null,
+            },
             user_id: {
                 type: DataTypes.INTEGER,
                 allowNull: true,

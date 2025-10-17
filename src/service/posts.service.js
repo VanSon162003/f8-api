@@ -1,5 +1,5 @@
 const { Post, Tag, PostTag, User } = require("@models");
-const { Op } = require("sequelize");
+const { Op, where } = require("sequelize");
 
 const getAllPosts = async (
     page = 1,
@@ -62,6 +62,41 @@ const getAllPosts = async (
     }
 };
 
+const getPostsMe = async (page = 1, limit = 10, currentUser) => {
+    try {
+        if (!currentUser)
+            throw new Error("Bạn cần đăng nhập trước khi thực hiện");
+        const offset = (page - 1) * limit;
+
+        const { count, rows } = await Post.findAndCountAll({
+            where: {
+                user_id: currentUser.id,
+            },
+
+            order: [["created_at", "DESC"]],
+            limit: parseInt(limit),
+            offset: parseInt(offset),
+            distinct: true,
+        });
+
+        const totalPages = Math.ceil(count / limit);
+
+        return {
+            posts: rows,
+            pagination: {
+                currentPage: parseInt(page),
+                totalPages,
+                totalItems: count,
+                itemsPerPage: parseInt(limit),
+                hasNextPage: page < totalPages,
+                hasPrevPage: page > 1,
+            },
+        };
+    } catch (error) {
+        throw new Error(error.message);
+    }
+};
+
 const getPostById = async (id) => {
     try {
         const post = await Post.findByPk(id, {
@@ -85,7 +120,7 @@ const getPostById = async (id) => {
         }
 
         // Increment view count
-        await post.increment("views_count");
+        // await post.increment("views_count");
 
         return post;
     } catch (error) {
@@ -117,7 +152,7 @@ const getPostBySlug = async (slug) => {
         }
 
         // Increment view count
-        await post.increment("views_count");
+        // await post.increment("views_count");
 
         return post;
     } catch (error) {
@@ -131,8 +166,16 @@ const { json } = require("express");
 
 const createPost = async (file, postData, authorId) => {
     try {
-        const { title, content, description, status, tags, visibility } =
-            postData;
+        const {
+            title,
+            content,
+            description,
+            status,
+            tags,
+            visibility,
+            metaTitle,
+            metaContent,
+        } = postData;
         let thumbnail = postData.thumbnail;
 
         // Nếu có file upload thì lưu vào src/uploads/imgs
@@ -159,6 +202,8 @@ const createPost = async (file, postData, authorId) => {
             visibility,
             user_id: authorId,
             views_count: 0,
+            meta_title: metaTitle,
+            meta_description: metaContent,
         });
 
         // Handle tags
@@ -185,7 +230,16 @@ const updatePost = async (id, file, postData, authorId) => {
             throw new Error("Unauthorized to update this post");
         }
 
-        const { title, content, description, status, tags } = postData;
+        const {
+            title,
+            content,
+            description,
+            status,
+            tags,
+            visibility,
+            metaTitle,
+            metaContent,
+        } = postData;
         let thumbnail = postData.thumbnail;
 
         // Nếu có file upload thì lưu vào src/uploads/imgs
@@ -208,12 +262,17 @@ const updatePost = async (id, file, postData, authorId) => {
             content,
             description,
             thumbnail,
-            status,
+            status: status,
+            visibility,
+            user_id: authorId,
+            views_count: 0,
+            meta_title: metaTitle,
+            meta_description: metaContent,
         });
 
         // Handle tags if provided
         if (tags !== undefined) {
-            await handlePostTags(id, tags);
+            await handlePostTags(id, JSON.parse(tags));
         }
 
         // Return updated post with associations
@@ -255,8 +314,8 @@ const handlePostTags = async (postId, tagNames = []) => {
         if (!Array.isArray(tagNames) || tagNames.length === 0) return;
 
         const cleanTagNames = tagNames
-            .map((name) => name.trim().toLowerCase())
-            .filter((name) => name.length > 0);
+            .map((tag) => tag.name.trim().toLowerCase())
+            .filter((tag) => tag.length > 0);
 
         const existingTags = await Tag.findAll({
             where: {
@@ -345,5 +404,6 @@ module.exports = {
     createPost,
     updatePost,
     deletePost,
+    getPostsMe,
     getPostsByTag,
 };

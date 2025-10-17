@@ -1,4 +1,4 @@
-const { body, param, query, validationResult } = require('express-validator');
+const { body, param, query, validationResult } = require("express-validator");
 
 // Validation middleware
 const handleValidationErrors = (req, res, next) => {
@@ -6,8 +6,8 @@ const handleValidationErrors = (req, res, next) => {
     if (!errors.isEmpty()) {
         return res.status(400).json({
             success: false,
-            message: 'Validation failed',
-            errors: errors.array()
+            message: "Validation failed",
+            errors: errors.array(),
         });
     }
     next();
@@ -15,171 +15,157 @@ const handleValidationErrors = (req, res, next) => {
 
 // Create post validation
 const validateCreatePost = [
-    body('title')
+    body("title")
         .notEmpty()
-        .withMessage('Title is required')
+        .withMessage("Title is required")
         .isLength({ min: 1, max: 255 })
-        .withMessage('Title must be between 1 and 255 characters')
+        .withMessage("Title must be between 1 and 255 characters")
         .trim(),
-    
-    body('content')
+
+    body("content")
         .notEmpty()
-        .withMessage('Content is required')
+        .withMessage("Content is required")
         .isLength({ min: 10 })
-        .withMessage('Content must be at least 10 characters long')
+        .withMessage("Content must be at least 10 characters long")
         .trim(),
-    
-    body('description')
+
+    body("description")
         .optional()
         .isLength({ max: 500 })
-        .withMessage('Description must not exceed 500 characters')
+        .withMessage("Description must not exceed 500 characters")
         .trim(),
-    
-    body('thumbnail')
+
+    body("thumbnail")
         .optional()
         .isURL()
-        .withMessage('Thumbnail must be a valid URL')
+        .withMessage("Thumbnail must be a valid URL")
         .isLength({ max: 500 })
-        .withMessage('Thumbnail URL must not exceed 500 characters'),
-    
-    body('status')
+        .withMessage("Thumbnail URL must not exceed 500 characters"),
+
+    body("status")
         .optional()
-        .isIn(['draft', 'published', 'archived'])
-        .withMessage('Status must be one of: draft, published, archived'),
-    
-    body('tags')
+        .isIn(["draft", "published", "archived"])
+        .withMessage("Status must be one of: draft, published, archived"),
+
+    body("tags")
         .optional()
         .isArray()
-        .withMessage('Tags must be an array')
+        .withMessage("Tags must be an array")
         .custom((tags) => {
             if (tags && tags.length > 0) {
                 for (const tag of tags) {
-                    if (typeof tag !== 'string' || tag.trim().length === 0) {
-                        throw new Error('Each tag must be a non-empty string');
+                    if (typeof tag !== "string" || tag.trim().length === 0) {
+                        throw new Error("Each tag must be a non-empty string");
                     }
                     if (tag.length > 100) {
-                        throw new Error('Each tag must not exceed 100 characters');
+                        throw new Error(
+                            "Each tag must not exceed 100 characters"
+                        );
                     }
                 }
             }
             return true;
         }),
-    
-    handleValidationErrors
+
+    handleValidationErrors,
 ];
 
 // Update post validation
 const validateUpdatePost = [
-    body('title')
+    body("title")
         .optional()
         .isLength({ min: 1, max: 255 })
-        .withMessage('Title must be between 1 and 255 characters')
+        .withMessage("Title must be between 1 and 255 characters")
         .trim(),
-    
-    body('content')
+
+    body("content")
         .optional()
         .isLength({ min: 10 })
-        .withMessage('Content must be at least 10 characters long')
+        .withMessage("Content must be at least 10 characters long")
         .trim(),
-    
-    body('description')
+
+    body("description")
         .optional()
         .isLength({ max: 500 })
-        .withMessage('Description must not exceed 500 characters')
+        .withMessage("Description must not exceed 500 characters")
         .trim(),
-    
-    body('thumbnail')
+
+    body("thumbnail")
         .optional()
         .isURL()
-        .withMessage('Thumbnail must be a valid URL')
+        .withMessage("Thumbnail must be a valid URL")
         .isLength({ max: 500 })
-        .withMessage('Thumbnail URL must not exceed 500 characters'),
-    
-    body('status')
+        .withMessage("Thumbnail URL must not exceed 500 characters"),
+
+    body("status")
         .optional()
-        .isIn(['draft', 'published', 'archived'])
-        .withMessage('Status must be one of: draft, published, archived'),
-    
-    body('tags')
-        .optional()
-        .isArray()
-        .withMessage('Tags must be an array')
-        .custom((tags) => {
-            if (tags && tags.length > 0) {
-                for (const tag of tags) {
-                    if (typeof tag !== 'string' || tag.trim().length === 0) {
-                        throw new Error('Each tag must be a non-empty string');
-                    }
-                    if (tag.length > 100) {
-                        throw new Error('Each tag must not exceed 100 characters');
-                    }
-                }
-            }
-            return true;
-        }),
-    
-    handleValidationErrors
+        .isIn(["draft", "published", "archived"])
+        .withMessage("Status must be one of: draft, published, archived"),
+
+    handleValidationErrors,
 ];
 
 // Get posts validation
 const validateGetPosts = [
-    query('page')
+    query("page")
         .optional()
         .isInt({ min: 1 })
-        .withMessage('Page must be a positive integer'),
-    
-    query('limit')
+        .withMessage("Page must be a positive integer"),
+
+    query("limit")
         .optional()
         .isInt({ min: 1, max: 100 })
-        .withMessage('Limit must be between 1 and 100'),
-    
-    query('status')
+        .withMessage("Limit must be between 1 and 100"),
+
+    query("status")
         .optional()
-        .isIn(['draft', 'published', 'archived'])
-        .withMessage('Status must be one of: draft, published, archived'),
-    
-    query('search')
+        .isIn(["draft", "published", "archived"])
+        .withMessage("Status must be one of: draft, published, archived"),
+
+    query("search")
         .optional()
         .isLength({ max: 255 })
-        .withMessage('Search term must not exceed 255 characters')
+        .withMessage("Search term must not exceed 255 characters")
         .trim(),
-    
-    handleValidationErrors
+
+    handleValidationErrors,
 ];
 
 // ID parameter validation
 const validateId = [
-    param('id')
-        .isInt({ min: 1 })
-        .withMessage('ID must be a positive integer'),
-    
-    handleValidationErrors
+    param("id").isInt({ min: 1 }).withMessage("ID must be a positive integer"),
+
+    handleValidationErrors,
 ];
 
 // Slug parameter validation
 const validateSlug = [
-    param('slug')
+    param("slug")
         .notEmpty()
-        .withMessage('Slug is required')
+        .withMessage("Slug is required")
         .matches(/^[a-z0-9-]+$/)
-        .withMessage('Slug must contain only lowercase letters, numbers, and hyphens')
+        .withMessage(
+            "Slug must contain only lowercase letters, numbers, and hyphens"
+        )
         .isLength({ min: 1, max: 255 })
-        .withMessage('Slug must be between 1 and 255 characters'),
-    
-    handleValidationErrors
+        .withMessage("Slug must be between 1 and 255 characters"),
+
+    handleValidationErrors,
 ];
 
 // Tag slug validation
 const validateTagSlug = [
-    param('tagSlug')
+    param("tagSlug")
         .notEmpty()
-        .withMessage('Tag slug is required')
+        .withMessage("Tag slug is required")
         .matches(/^[a-z0-9-]+$/)
-        .withMessage('Tag slug must contain only lowercase letters, numbers, and hyphens')
+        .withMessage(
+            "Tag slug must contain only lowercase letters, numbers, and hyphens"
+        )
         .isLength({ min: 1, max: 100 })
-        .withMessage('Tag slug must be between 1 and 100 characters'),
-    
-    handleValidationErrors
+        .withMessage("Tag slug must be between 1 and 100 characters"),
+
+    handleValidationErrors,
 ];
 
 module.exports = {
@@ -189,5 +175,5 @@ module.exports = {
     validateId,
     validateSlug,
     validateTagSlug,
-    handleValidationErrors
+    handleValidationErrors,
 };
