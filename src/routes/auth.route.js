@@ -7,6 +7,7 @@ const authController = require("../controller/auth.controller");
 // Middleware
 const checkAuth = require("../middlewares/checkAuth");
 const checkAuth0 = require("../middlewares/checkAuth0");
+const upload = require("../middlewares/upload");
 
 //validator
 const {
@@ -23,6 +24,14 @@ router.post("/forgot-password", authController.forgotPassword);
 router.post("/refresh-token", authController.refreshToken);
 router.post("/verify-email", authController.verifyEmail);
 router.post("/resend-email", authController.resendEmail);
+
+// Update current user (accepts multipart/form-data with optional image + fields)
+router.put(
+    "/update",
+    checkAuth,
+    upload.single("image"),
+    authController.updateUser
+);
 
 router.post("/protected", checkAuth0, authController.authenticateAuth0);
 router.get("/:username", authController.getUserProfile);

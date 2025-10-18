@@ -145,6 +145,23 @@ const unfollowUser = async (req, res) => {
     }
 };
 
+const updateUser = async (req, res) => {
+    try {
+        const currentUser = req.user;
+
+        const data = authService.updateCurrentUser(
+            currentUser,
+            req.file,
+            req.body
+        );
+
+        response.success(res, 200, data);
+    } catch (error) {
+        console.error("updateUser error:", error);
+        response.error(res, 500, error.message || "Update failed");
+    }
+};
+
 module.exports = {
     getMe,
     register,
@@ -158,4 +175,5 @@ module.exports = {
     getUserProfile,
     followUser,
     unfollowUser,
+    updateUser,
 };

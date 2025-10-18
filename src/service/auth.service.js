@@ -376,6 +376,67 @@ const unfollowUser = async (currentUser, username) => {
     return true;
 };
 
+const updateCurrentUser = async (currentUser, file, body) => {
+    if (!currentUser) {
+        return response.error(res, 401, "Unauthorized");
+    }
+
+    // Fields that can be updated from the formData
+    // If a field is provided (even empty), we set it; otherwise default to null per requirement
+    const socialMap = {
+        website: "website_url",
+        github: "github_url",
+        facebook: "facebook_url",
+        linkedin: "linkedkin_url",
+        youtube: "youtube_url",
+        tiktok: "tiktok_url",
+    };
+
+    const updatable = {};
+
+    // base fields
+    updatable.full_name = body.full_name;
+    updatable.username = body.username;
+    updatable.about = body.about || null;
+
+    // social fields
+    Object.keys(socialMap).forEach((k) => {
+        console.log(body[k]);
+
+        updatable[socialMap[k]] = body[k] || null;
+    });
+
+    // avatar: if a file is uploaded, store it; if not provided in body then set null
+    if (file) {
+        const fs = require("fs");
+        const path = require("path");
+
+        const uploadDir = path.join(__dirname, "../uploads/imgs");
+        if (!fs.existsSync(uploadDir)) {
+            fs.mkdirSync(uploadDir, { recursive: true });
+        }
+
+        const ext = path.extname(file.originalname);
+        const basename = path.basename(file.originalname, ext);
+        const filename = `${basename}-${Date.now()}${ext}`;
+        const destPath = path.join(uploadDir, filename);
+
+        // move file from tmp to dest
+        fs.renameSync(file.path, destPath);
+
+        // Save public path (you may want to store only relative path depending on your setup)
+        updatable.avatar = `uploads/imgs/${filename}`;
+    }
+
+    // Update user (overwrite with provided values or null)
+    await User.update(updatable, { where: { id: currentUser.id } });
+
+    // fetch updated user
+    const updated = await User.findOne({ where: { id: currentUser.id } });
+
+    return updated;
+};
+
 module.exports = {
     register,
     login,
@@ -389,4 +450,5 @@ module.exports = {
     followUser,
     unfollowUser,
     updateUserActivity,
+    updateCurrentUser,
 };
