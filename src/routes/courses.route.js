@@ -16,7 +16,15 @@ router.get("/videos", coursesController.getAllVideos);
 router.post("/register", checkAuth, coursesController.registerCourse);
 router.get("/:courseId/progress", checkAuth, coursesController.getProgress);
 router.post("/:courseId/progress", checkAuth, coursesController.updateProgress);
-router.get("/:courseId/user-lessons", checkAuth, coursesController.getUserLessonProgress);
-router.post("/user-lesson-progress", checkAuth, coursesController.updateUserLessonProgress);
+router.get(
+    "/:courseId/user-lessons",
+    checkAuth,
+    coursesController.getUserLessonProgress
+);
+router.post(
+    "/user-course-progress",
+    checkAuth,
+    coursesController.updateUserLessonProgress
+);
 
 module.exports = router;

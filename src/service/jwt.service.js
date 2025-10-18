@@ -17,6 +17,15 @@ const generateAccessToken = (
     };
 };
 
+// Short-lived temporary token used to identify a user awaiting 2FA verification
+const generateTmpToken = (userId, expires = 300) => {
+    const token = jwt.sign({ userId, tfa: true }, JWT_SECRET, {
+        expiresIn: expires,
+    });
+
+    return token;
+};
+
 const verifyAccessToken = (token, secret = JWT_SECRET) => {
     try {
         const payload = jwt.verify(token, secret);
@@ -29,5 +38,6 @@ const verifyAccessToken = (token, secret = JWT_SECRET) => {
 
 module.exports = {
     generateAccessToken,
+    generateTmpToken,
     verifyAccessToken,
 };

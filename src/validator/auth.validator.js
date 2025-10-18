@@ -61,3 +61,20 @@ exports.loginValidate = [
 
     handlerValidatorErrors,
 ];
+
+exports.changePasswordValidate = [
+    checkSchema({
+        oldPassword: {
+            notEmpty: true,
+            errorMessage: "Old password is required",
+        },
+        newPassword: {
+            notEmpty: true,
+            isLength: {
+                options: { min: 8 },
+                errorMessage: "New password must be at least 8 characters long",
+            },
+        },
+    }),
+    handlerValidatorErrors,
+];

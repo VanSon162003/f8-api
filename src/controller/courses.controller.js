@@ -15,7 +15,6 @@ const getBySlug = async (req, res) => {
         const { slug } = req.params;
 
         const { limit, offset } = req.query;
-        console.log(limit, offset);
 
         const data = await coursesService.getBySlug(
             slug,
@@ -95,7 +94,7 @@ const getUserLessonProgress = async (req, res) => {
 const updateUserLessonProgress = async (req, res) => {
     try {
         const { lessonId, watchDuration, lastPosition, completed } = req.body;
-        
+
         const data = await coursesService.updateUserLessonProgress(
             req.user,
             lessonId,

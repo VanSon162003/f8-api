@@ -10,7 +10,9 @@ const likesRoute = require("./likes.route");
 const bookmarksRoute = require("./bookmarks.route");
 const videosRoute = require("./videos.route");
 const learningPathsRoute = require("./learningPaths.route");
+const paymentsRoute = require("./payments.route");
 
+router.use("/payments", paymentsRoute);
 router.use("/videos", videosRoute);
 router.use("/comments", commentsRoute);
 router.use("/likes", likesRoute);

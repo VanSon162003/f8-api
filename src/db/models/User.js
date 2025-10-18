@@ -44,6 +44,18 @@ module.exports = (sequelize) => {
                 type: DataTypes.STRING,
                 allowNull: true,
             },
+            two_factor_recovery_codes: {
+                type: DataTypes.TEXT,
+                allowNull: true,
+            },
+            two_factor_failed_count: {
+                type: DataTypes.INTEGER,
+                defaultValue: 0,
+            },
+            two_factor_locked_until: {
+                type: DataTypes.DATE,
+                allowNull: true,
+            },
             username: {
                 type: DataTypes.STRING(50),
                 unique: true,
@@ -266,6 +278,14 @@ module.exports = (sequelize) => {
         User.hasMany(models.UserActivity, {
             foreignKey: "user_id",
             as: "activities",
+        });
+
+        // paymnets
+        User.hasMany(models.Payment, {
+            foreignKey: "user_id",
+            as: "payments",
+            onDelete: "CASCADE",
+            onUpdate: "CASCADE",
         });
     };
 

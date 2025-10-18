@@ -144,6 +144,14 @@ module.exports = (sequelize) => {
             foreignKey: "course_id",
             as: "userProgress",
         });
+
+        // 1 Course -> n Payments
+        Course.hasMany(models.Payment, {
+            foreignKey: "course_id",
+            as: "payments",
+            onDelete: "CASCADE",
+            onUpdate: "CASCADE",
+        });
     };
 
     return Course;

@@ -14,6 +14,7 @@ const {
     registerValidate,
     loginValidate,
 } = require("../validator/auth.validator");
+const { changePasswordValidate } = require("../validator/auth.validator");
 
 // Routes
 router.get("/me", checkAuth, authController.getMe);
@@ -33,8 +34,22 @@ router.put(
     authController.updateUser
 );
 
+// Change password (only allowed for non-Facebook/Github social accounts or gmail)
+router.put(
+    "/change-password",
+    checkAuth,
+    changePasswordValidate,
+    authController.changePassword
+);
+
+// Two-factor auth (TOTP) endpoints
+router.get("/2fa/setup", checkAuth, authController.twoFactorSetup);
+router.post("/2fa/verify", checkAuth, authController.twoFactorVerify);
+router.post("/2fa/disable", checkAuth, authController.twoFactorDisable);
+
 router.post("/protected", checkAuth0, authController.authenticateAuth0);
 router.get("/:username", authController.getUserProfile);
+router.post("/login/2fa", authController.login2fa);
 // Follow / Unfollow
 router.post("/:username/follow", checkAuth, authController.followUser);
 router.delete("/:username/follow", checkAuth, authController.unfollowUser);

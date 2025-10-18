@@ -83,6 +83,13 @@ const login = async (data) => {
     }
 
     const userId = user.id;
+
+    // If user enabled two-factor, return a temporary token to continue 2FA flow
+    if (user.two_factor_enabled) {
+        const tmpToken = jwtService.generateTmpToken(userId);
+        return { require2fa: true, tmpToken };
+    }
+
     const tokenData = jwt.generateAccessToken(userId);
     const refresh_token = await refreshTokenService.createRefreshToken(userId);
 
