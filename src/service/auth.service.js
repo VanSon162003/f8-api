@@ -1,3 +1,17 @@
+const dotenv = require("dotenv");
+dotenv.config();
+
+const db = require("@/db/models");
+const { User, AccessToken, Queue, UserActivity, Course } = db;
+const bcrypt = require("@/utils/bcrypt");
+const jwt = require("./jwt.service");
+const jwtService = require("./jwt.service");
+const { Op } = require("sequelize");
+
+const refreshTokenService = require("./refreshToken.service");
+const { where } = require("sequelize");
+const auth = require("../config/auth");
+
 // Cập nhật hoặc tạo mới user_activity cho user theo ngày và loại hành động
 const updateUserActivity = async (userId, activityType = "all") => {
     const today = new Date();
@@ -19,19 +33,6 @@ const updateUserActivity = async (userId, activityType = "all") => {
         await activity.save();
     }
 };
-const dotenv = require("dotenv");
-dotenv.config();
-
-const db = require("@/db/models");
-const { User, AccessToken, Queue, UserActivity, Course } = db;
-const bcrypt = require("@/utils/bcrypt");
-const jwt = require("./jwt.service");
-const jwtService = require("./jwt.service");
-const { Op } = require("sequelize");
-
-const refreshTokenService = require("./refreshToken.service");
-const { where } = require("sequelize");
-const auth = require("../config/auth");
 
 const register = async (data) => {
     const emailExits = await User.findOne({ where: { email: data.email } });
@@ -339,7 +340,18 @@ const followUser = async (currentUser, username) => {
     // Ghi nhận hoạt động follow
     await updateUserActivity(currentUser.id, "follow");
 
-    // Optionally: create notification/queue job
+    // Send follow notification
+    const notificationService = require("./notifications.service");
+    try {
+        await notificationService.sendFollowNotification(
+            target.id,
+            currentUser
+        );
+    } catch (err) {
+        console.error("Error sending follow notification:", err.message);
+    }
+
+    // Queue email notification
     try {
         await Queue.create({
             type: "sendNewFollowerEmail",

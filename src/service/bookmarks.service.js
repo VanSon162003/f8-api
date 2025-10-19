@@ -1,8 +1,9 @@
 const { Bookmark, Post, User } = require("@models");
 const { updateUserActivity } = require("./auth.service");
+const notificationsService = require("./notifications.service");
 
 // Toggle bookmark for a post
-const toggleBookmark = async (postId, userId) => {
+const toggleBookmark = async (postId, userId, currentUser) => {
     try {
         // Check if user already bookmarked this post
         const existingBookmark = await Bookmark.findOne({
@@ -27,6 +28,13 @@ const toggleBookmark = async (postId, userId) => {
                 post_id: postId,
             });
             await updateUserActivity(userId, "bookmark");
+
+            // Get post and send notification
+            const post = await Post.findByPk(postId);
+            if (post) {
+                await notificationsService.sendPostSaveNotification(post, currentUser);
+            }
+
             return { bookmarked: true, message: "Bookmarked successfully" };
         }
     } catch (error) {

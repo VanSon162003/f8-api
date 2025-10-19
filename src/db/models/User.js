@@ -44,18 +44,18 @@ module.exports = (sequelize) => {
                 type: DataTypes.STRING,
                 allowNull: true,
             },
-            two_factor_recovery_codes: {
-                type: DataTypes.TEXT,
-                allowNull: true,
-            },
-            two_factor_failed_count: {
-                type: DataTypes.INTEGER,
-                defaultValue: 0,
-            },
-            two_factor_locked_until: {
-                type: DataTypes.DATE,
-                allowNull: true,
-            },
+            // two_factor_recovery_codes: {
+            //     type: DataTypes.TEXT,
+            //     allowNull: true,
+            // },
+            // two_factor_failed_count: {
+            //     type: DataTypes.INTEGER,
+            //     defaultValue: 0,
+            // },
+            // two_factor_locked_until: {
+            //     type: DataTypes.DATE,
+            //     allowNull: true,
+            // },
             username: {
                 type: DataTypes.STRING(50),
                 unique: true,
@@ -221,13 +221,13 @@ module.exports = (sequelize) => {
         });
 
         // User has many Notifications (1:n)
-        User.hasMany(models.Notification, {
-            foreignKey: "notifiable_id",
-            as: "notifications",
-            scope: {
-                notifiable_type: "User",
-            },
-        });
+        // User.hasMany(models.Notification, {
+        //     foreignKey: "notifiable_id",
+        //     as: "notifications",
+        //     scope: {
+        //         notifiable_type: "User",
+        //     },
+        // });
 
         // User follows many Users (n:n through Follows)
         User.belongsToMany(models.User, {
@@ -286,6 +286,14 @@ module.exports = (sequelize) => {
             as: "payments",
             onDelete: "CASCADE",
             onUpdate: "CASCADE",
+        });
+
+        // notifications
+        User.belongsToMany(models.Notification, {
+            through: models.UserNotification,
+            foreignKey: "user_id",
+            otherKey: "notification_id",
+            as: "notifications",
         });
     };
 

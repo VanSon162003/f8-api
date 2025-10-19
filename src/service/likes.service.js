@@ -1,8 +1,9 @@
-const { Like } = require("@models");
+const { Like, Post } = require("@models");
 const { updateUserActivity } = require("./auth.service");
+const notificationsService = require("./notifications.service");
 
 // Toggle like for a post
-const toggleLike = async (likeableType, likeableId, userId) => {
+const toggleLike = async (likeableType, likeableId, userId, currentUser) => {
     try {
         // Check if user already liked this post
         const existingLike = await Like.findOne({
@@ -26,6 +27,24 @@ const toggleLike = async (likeableType, likeableId, userId) => {
                 likeable_id: likeableId,
             });
             await updateUserActivity(userId, "like");
+
+            // Send notification for new like
+
+            if (likeableType === "post") {
+                const post = await Post.findByPk(likeableId);
+                if (post && post.user_id !== currentUser.id) {
+                    // Don't notify if liking own post
+                    await notificationsService.sendReactionNotification(
+                        {
+                            targetId: likeableId,
+                            targetType: "post",
+                            type: "like",
+                        },
+                        currentUser
+                    );
+                }
+            }
+
             return { liked: true, message: "Liked successfully" };
         }
     } catch (error) {

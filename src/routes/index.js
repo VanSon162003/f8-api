@@ -11,7 +11,11 @@ const bookmarksRoute = require("./bookmarks.route");
 const videosRoute = require("./videos.route");
 const learningPathsRoute = require("./learningPaths.route");
 const paymentsRoute = require("./payments.route");
+const pusherRoute = require("./pusher.route");
+const notificationsRoute = require("./notifications.route");
 
+router.use("/notifications", notificationsRoute);
+router.use("/pusher", pusherRoute);
 router.use("/payments", paymentsRoute);
 router.use("/videos", videosRoute);
 router.use("/comments", commentsRoute);

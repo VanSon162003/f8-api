@@ -1,5 +1,16 @@
-const { Comment, User, CommentReaction, ReactionType } = require("@models");
+const {
+    Comment,
+    User,
+    CommentReaction,
+    ReactionType,
+    Notification,
+    Post,
+} = require("@models");
+const { updateUserActivity } = require("./auth.service");
+
 const { where } = require("sequelize");
+const pusherService = require("./pusher.service");
+const notificationsService = require("./notifications.service");
 
 const markCurrentUserReaction = (currentUser, comments) => {
     return comments.map((comment) => {
@@ -140,10 +151,21 @@ const create = async (data, currentUser) => {
             parent_id: data.parent_id || null,
             content: data.content,
         });
+
+        // Send notification for reply if it's a reply to another comment
+
+        if (data.parent_id) {
+            await notificationsService.sendReplyNotification(
+                comment,
+                currentUser
+            );
+        }
+
         // Ghi nhận hoạt động comment
-        const { updateUserActivity } = require("./auth.service");
         if (data.type === "post") {
             await updateUserActivity(currentUser.id, "comment_post");
+            !data.parent_id &&
+                (await pusherService.sendComment(data, currentUser, comment));
         } else if (data.type === "question") {
             await updateUserActivity(currentUser.id, "comment_question");
         }
@@ -209,18 +231,49 @@ const handleReaction = async (commentId, reaction, currentUser) => {
 
     if (commentReactionExits && !reaction.action) {
         commentReactionExits.reaction_type_id = reaction.id;
-
         return await commentReactionExits.save();
     }
 
     comment.like_count += 1;
     await comment.save();
 
-    return await CommentReaction.create({
+    const newReaction = await CommentReaction.create({
         user_id: currentUser?.id,
         comment_id: commentId,
         reaction_type_id: reaction.id,
     });
+
+    // Send notification for the new reaction
+    try {
+        if (!comment.user_id || comment.user_id === currentUser.id)
+            return newReaction;
+
+        // Get associated post if comment is on a post
+        let postSlug = null;
+        if (comment.commentable_type === "post") {
+            const post = await Post.findByPk(comment.commentable_id);
+            if (post) {
+                postSlug = post.slug;
+            }
+        }
+
+        await notificationsService.sendReactionNotification(
+            {
+                targetId: commentId,
+                targetType: "comment",
+                type: "comment_react",
+                reactionLabel: reaction.label,
+                commentableType: comment.commentable_type,
+                commentableId: comment.commentable_id,
+                postSlug: postSlug,
+            },
+            currentUser
+        );
+    } catch (error) {
+        console.error("Error sending reaction notification:", error);
+    }
+
+    return newReaction;
 };
 
 module.exports = { getAllByType, create, edit, remove, handleReaction };

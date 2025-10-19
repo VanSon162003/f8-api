@@ -1,6 +1,7 @@
 const response = require("../utils/response");
-const { User, AccessToken, Bookmark } = require("../db/models");
+const { User, AccessToken, Notification } = require("../db/models");
 const jwtService = require("../service/jwt.service");
+const { or } = require("sequelize");
 
 async function checkAuth(req, res, next) {
     try {
@@ -23,36 +24,23 @@ async function checkAuth(req, res, next) {
         const payload = jwtService.verifyAccessToken(token);
 
         const user = await User.findOne({
-            // attributes: [
-            //     "id",
-            //     "email",
-            //     "avatar",
-            //     "first_name",
-            //     "last_name",
-            //     "username",
-            //     "created_at",
-            // ],
             where: { id: payload.userId },
-            // include: {
-            //     model: Bookmark,
-            //     as: "bookmarks",
-            //     attributes: ["id"],
-            // },
-            // include: [
-            //     {
-            //         model: UserSetting,
-            //         as: "settings",
-            //         required: false,
-            //     },
-            //     {
-            //         model: Notification,
-            //         required: false,
-            //         as: "notifications",
-            //         through: {
-            //             attributes: ["read_at", "created_at"],
-            //         },
-            //     },
-            // ],
+
+            include: [
+                {
+                    model: Notification,
+                    required: false,
+                    as: "notifications",
+                },
+            ],
+
+            order: [
+                [
+                    { model: Notification, as: "notifications" },
+                    "created_at",
+                    "DESC",
+                ],
+            ],
         });
 
         if (!user) {
