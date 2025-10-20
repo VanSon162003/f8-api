@@ -33,6 +33,7 @@ module.exports = {
                     "comment",
                     "quiz",
                     "login",
+                    "register_course",
                     "all"
                 ),
                 defaultValue: "all",

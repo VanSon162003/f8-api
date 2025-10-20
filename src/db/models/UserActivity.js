@@ -32,6 +32,7 @@ module.exports = (sequelize) => {
                     "comment",
                     "quiz",
                     "login",
+                    "register_course",
                     "all"
                 ),
                 defaultValue: "all",
