@@ -49,7 +49,6 @@ const getByUser = async (currentUser) => {
                 {
                     model: UserCourseProgress,
                     as: "userProgress",
-                    attributes: ["id", "last_view_at", "progress"],
                 },
             ],
         });
