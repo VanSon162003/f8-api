@@ -127,8 +127,6 @@ const getAllVideos = async (limit = 8) => {
 };
 
 const registerCourse = async (currentUser, courseId) => {
-    console.log(111111111111111111111111111111111);
-
     console.log(courseId, currentUser);
 
     try {
@@ -155,8 +153,6 @@ const registerCourse = async (currentUser, courseId) => {
         const userHasCourse = await currentUser.hasCourse(course);
 
         if (userHasCourse) throw new Error("Bạn đã đăng ký khoá học này rồi");
-
-        console.log(course.tracks[0].lessons[0].id);
 
         await currentUser.addCourse(course);
 

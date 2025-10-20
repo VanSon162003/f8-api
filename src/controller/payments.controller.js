@@ -26,12 +26,6 @@ const verifyPayment = async (req, res) => {
             return res.status(400).json({ message: "Missing session ID" });
         }
 
-        console.log(
-            "Available methods in paymentsService:",
-            Object.keys(paymentsService)
-        );
-        console.log("Attempting to verify session:", sessionId);
-
         // Verify the payment session
         const payment = await paymentsService.verifyPaymentSession(sessionId);
 
