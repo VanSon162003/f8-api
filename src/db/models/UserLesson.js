@@ -44,7 +44,8 @@ module.exports = (sequelize) => {
         },
         {
             tableName: "user_lesson",
-            timestamps: false,
+            timestamps: true,
+            underscored: true,
         }
     );
 

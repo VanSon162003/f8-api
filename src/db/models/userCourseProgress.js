@@ -1,5 +1,7 @@
 "use strict";
 
+const { time } = require("speakeasy");
+
 module.exports = (sequelize, DataTypes) => {
     const UserCourseProgress = sequelize.define(
         "UserCourseProgress",
@@ -57,6 +59,7 @@ module.exports = (sequelize, DataTypes) => {
         },
         {
             tableName: "user_course_progress",
+            timestamps: true,
             underscored: true,
         }
     );
