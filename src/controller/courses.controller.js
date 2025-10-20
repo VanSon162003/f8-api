@@ -10,6 +10,16 @@ const getAll = async (req, res) => {
     }
 };
 
+const getByUser = async (req, res) => {
+    try {
+        const data = await coursesService.getByUser(req.user);
+
+        response.success(res, 200, data);
+    } catch (error) {
+        response.error(res, 500, error.message);
+    }
+};
+
 const getBySlug = async (req, res) => {
     try {
         const { slug } = req.params;
@@ -109,6 +119,7 @@ const updateUserLessonProgress = async (req, res) => {
 
 module.exports = {
     getAll,
+    getByUser,
     getAllVideos,
     getBySlug,
     registerCourse,

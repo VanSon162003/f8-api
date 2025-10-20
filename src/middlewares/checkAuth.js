@@ -1,5 +1,5 @@
 const response = require("../utils/response");
-const { User, AccessToken, Notification } = require("../db/models");
+const { User, AccessToken, Notification, Course } = require("../db/models");
 const jwtService = require("../service/jwt.service");
 const { or } = require("sequelize");
 

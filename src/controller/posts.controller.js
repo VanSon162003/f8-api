@@ -23,6 +23,28 @@ const getAllPosts = async (req, res) => {
     }
 };
 
+const getPopularPosts = async (req, res) => {
+    try {
+        const {
+            page = 1,
+            limit = 10,
+            status = "published",
+            search = "",
+        } = req.query;
+
+        const data = await postsService.getPopularPosts(
+            parseInt(page),
+            parseInt(limit),
+            status,
+            search
+        );
+
+        response.success(res, 200, data);
+    } catch (error) {
+        response.error(res, 500, error.message);
+    }
+};
+
 const getPostsMe = async (req, res) => {
     try {
         const { page = 1, limit = 10 } = req.query;
@@ -150,6 +172,7 @@ const getPostsByTag = async (req, res) => {
 
 module.exports = {
     getAllPosts,
+    getPopularPosts,
     getPostById,
     getPostBySlug,
     createPost,

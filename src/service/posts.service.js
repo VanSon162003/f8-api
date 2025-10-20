@@ -62,6 +62,67 @@ const getAllPosts = async (
     }
 };
 
+const getPopularPosts = async (
+    page = 1,
+    limit = 10,
+    status = "published",
+    search = ""
+) => {
+    try {
+        const offset = (page - 1) * limit;
+
+        const whereClause = {};
+        if (status) {
+            whereClause.status = status;
+        }
+
+        if (search) {
+            whereClause[Op.or] = [
+                { title: { [Op.like]: `%${search}%` } },
+                { content: { [Op.like]: `%${search}%` } },
+                { excerpt: { [Op.like]: `%${search}%` } },
+            ];
+        }
+
+        const { count, rows } = await Post.findAndCountAll({
+            where: whereClause,
+            include: [
+                {
+                    model: User,
+                    as: "author",
+                    attributes: ["id", "full_name", "username", "avatar"],
+                },
+                {
+                    model: Tag,
+                    as: "tags",
+                    through: { attributes: [] },
+                    attributes: ["id", "name"],
+                },
+            ],
+            order: [["views_count", "DESC"]],
+            limit: parseInt(limit),
+            offset: parseInt(offset),
+            distinct: true,
+        });
+
+        const totalPages = Math.ceil(count / limit);
+
+        return {
+            posts: rows,
+            pagination: {
+                currentPage: parseInt(page),
+                totalPages,
+                totalItems: count,
+                itemsPerPage: parseInt(limit),
+                hasNextPage: page < totalPages,
+                hasPrevPage: page > 1,
+            },
+        };
+    } catch (error) {
+        throw new Error(error.message);
+    }
+};
+
 const getPostsMe = async (page = 1, limit = 10, currentUser) => {
     try {
         if (!currentUser)
@@ -152,7 +213,7 @@ const getPostBySlug = async (slug) => {
         }
 
         // Increment view count
-        // await post.increment("views_count");
+        await post.increment("views_count");
 
         return post;
     } catch (error) {
@@ -399,6 +460,7 @@ const getPostsByTag = async (tagName, page = 1, limit = 10) => {
 
 module.exports = {
     getAllPosts,
+    getPopularPosts,
     getPostById,
     getPostBySlug,
     createPost,

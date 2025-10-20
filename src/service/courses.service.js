@@ -33,6 +33,34 @@ const getAll = async () => {
     }
 };
 
+const getByUser = async (currentUser) => {
+    if (!currentUser) {
+        throw new Error("Bạn cần đăng nhập để lấy khoá học của mình");
+    }
+
+    try {
+        const courses = await currentUser.getCourses({
+            include: [
+                {
+                    model: User,
+                    as: "creator",
+                    attributes: ["id", "full_name", "username", "avatar"],
+                },
+                {
+                    model: UserCourseProgress,
+                    as: "userProgress",
+                    attributes: ["id", "last_view_at", "progress"],
+                },
+            ],
+        });
+
+        return courses;
+    } catch (error) {
+        console.error(error);
+        throw new Error("Không thể lấy danh sách khóa học");
+    }
+};
+
 const getBySlug = async (
     slug,
     currentUser,
@@ -389,6 +417,7 @@ const updateUserLessonProgress = async (
 
 module.exports = {
     getAll,
+    getByUser,
     getAllVideos,
     getTracksByCourseId,
     getBySlug,

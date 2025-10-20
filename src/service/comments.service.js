@@ -5,6 +5,9 @@ const {
     ReactionType,
     Notification,
     Post,
+    Course,
+    Track,
+    Lesson,
 } = require("@models");
 const { updateUserActivity } = require("./auth.service");
 
@@ -157,17 +160,61 @@ const create = async (data, currentUser) => {
         if (data.parent_id) {
             await notificationsService.sendReplyNotification(
                 comment,
-                currentUser
+                currentUser,
+                data
             );
         }
 
         // Ghi nhận hoạt động comment
         if (data.type === "post") {
-            await updateUserActivity(currentUser.id, "comment_post");
-            !data.parent_id &&
-                (await pusherService.sendComment(data, currentUser, comment));
+            try {
+                await updateUserActivity(currentUser.id, "comment_post");
+
+                const post = await Post.findByPk(data.id);
+
+                if (post) {
+                    post.total_comment += 1;
+                    await post.save();
+                }
+
+                !data.parent_id &&
+                    (await pusherService.sendComment(
+                        data,
+                        currentUser,
+                        comment
+                    ));
+            } catch (error) {}
         } else if (data.type === "question") {
-            await updateUserActivity(currentUser.id, "comment_question");
+            try {
+                await updateUserActivity(currentUser.id, "comment_question");
+
+                const lesson = await Lesson.findByPk(data.id, {
+                    include: [
+                        {
+                            model: Track,
+                            as: "track",
+                            attributes: ["id", "course_id"],
+                        },
+                    ],
+
+                    attributes: ["id", "track_id"],
+                });
+
+                const course = await Course.findByPk(lesson?.track?.course_id);
+
+                if (course) {
+                    course.total_comment += 1;
+                    await course.save();
+                }
+
+                !data.parent_id &&
+                    (await pusherService.sendComment(
+                        data,
+                        currentUser,
+                        comment,
+                        course
+                    ));
+            } catch (error) {}
         }
         return comment;
     } catch (error) {

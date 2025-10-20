@@ -88,22 +88,29 @@ class PusherService {
         return true;
     }
 
-    async sendComment(data, currentUser, comment) {
+    async sendComment(data, currentUser, comment, course) {
         const post = await Post.findByPk(data.id);
 
         if (currentUser.id === post.user_id) return;
 
         try {
             const notification = await Notification.create({
-                notifiable_type: "Post",
+                notifiable_type: data.type === "post" ? "Post" : "Question",
                 notifiable_id: data.id,
-                type: "comment_post",
-                title: `${currentUser.full_name} đã bình luận bài viết của bạn`,
-                to: `/blog/${post.slug}#${currentUser.username}`,
+                type:
+                    data.type === "post" ? "comment_post" : "comment_question",
+                title: `${currentUser.full_name} đã bình luận ${
+                    data.type === "post" ? "bài viết" : "khoá học"
+                } của bạn`,
+                to:
+                    data.type === "post"
+                        ? `/blog/${post.slug}#${currentUser.username}`
+                        : `/learning/${course.slug}#${currentUser.username}`,
             });
 
             await UserNotification.create({
-                user_id: post.user_id,
+                user_id:
+                    data.type === "post" ? post.user_id : course.creator_id,
                 notification_id: notification.id,
                 read_at: null,
             });
@@ -116,9 +123,14 @@ class PusherService {
                     id: notification.id,
                     comment_id: comment.id,
                     type: notification.type,
-                    title: `${currentUser.full_name} đã bình luận bài viết của bạn`,
+                    title: `${currentUser.full_name} đã bình luận ${
+                        data.type === "post" ? "bài viết" : "khoá học"
+                    } của bạn`,
                     content: comment.content,
-                    link: `/blog/${post.slug}#${currentUser.username}`,
+                    link:
+                        data.type === "post"
+                            ? `/blog/${post.slug}#${currentUser.username}`
+                            : `/learning/${course.slug}#${currentUser.username}`,
                     notifiable_type: notification.type,
                     notifiable_id: notification.id,
                     createdAt: new Date(),
@@ -133,19 +145,28 @@ class PusherService {
                 id: notification.id,
                 comment_id: comment.id,
                 type: notification.type,
-                title: `${currentUser.full_name} đã bình luận bài viết của bạn`,
-                to: `/blog/${post.slug}#${currentUser.username}`,
+                title: `${currentUser.full_name} đã bình luận ${
+                    data.type === "post" ? "bài viết" : "khoá học"
+                } của bạn`,
+                to:
+                    data.type === "post"
+                        ? `/blog/${post.slug}#${currentUser.username}`
+                        : `/learning/${course.slug}#${currentUser.username}`,
 
                 content: comment.content,
-                link: `/blog/${post.slug}#${currentUser.username}`,
+                link:
+                    data.type === "post"
+                        ? `/blog/${post.slug}#${currentUser.username}`
+                        : `/learning/${course.slug}#${currentUser.username}`,
                 notifiable_type: notification.type,
                 notifiable_id: notification.id,
                 createdAt: new Date(),
                 updatedAt: new Date(),
 
                 UserNotification: currentUser.toJSON(),
-                user_id: post.user_id,
+                userId: data.type === "post" ? post.user_id : course.creator_id,
             });
+            console.log(123);
         } catch (error) {
             console.log(error);
         }

@@ -11,6 +11,7 @@ const checkAuth = require("@/middlewares/checkAuth");
 
 // Routes
 router.get("/", coursesController.getAll);
+router.get("/user", checkAuth, coursesController.getByUser);
 router.get("/:slug", checkAuth, coursesController.getBySlug);
 router.get("/videos", coursesController.getAllVideos);
 router.post("/register", checkAuth, coursesController.registerCourse);

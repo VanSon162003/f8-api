@@ -4,6 +4,9 @@ const {
     Post,
     User,
     Comment,
+    Course,
+    Lesson,
+    Track,
 } = require("@/db/models");
 const pusher = require("@/config/pusher");
 const { where } = require("sequelize");
@@ -164,7 +167,7 @@ class NotificationService {
         }
     }
 
-    async sendReplyNotification(comment, currentUser) {
+    async sendReplyNotification(comment, currentUser, data) {
         try {
             if (!comment.parent_id) return; // Not a reply
 
@@ -174,10 +177,8 @@ class NotificationService {
 
             // Build notification URL based on the commentable type
             let notificationUrl;
-            let userId = null;
             if (comment.commentable_type === "post") {
                 const post = await Post.findByPk(comment.commentable_id);
-                userId = post.user_id;
                 if (post) {
                     notificationUrl = `/blog/${post.slug}#comment-${comment.id}`;
                 }
@@ -185,7 +186,20 @@ class NotificationService {
 
             // Default URL if not a post or post not found
             if (!notificationUrl) {
-                notificationUrl = `#comment-${comment.id}`;
+                const lesson = await Lesson.findByPk(data?.id, {
+                    include: [
+                        {
+                            model: Track,
+                            as: "track",
+                            attributes: ["id", "course_id"],
+                        },
+                    ],
+
+                    attributes: ["id", "track_id"],
+                });
+
+                const course = await Course.findByPk(lesson?.track?.course_id);
+                notificationUrl = `/learning/${course.slug}#comment-${comment.id}`;
             }
 
             const notificationData = {
@@ -213,7 +227,7 @@ class NotificationService {
                 notifiable_id: notification.notifiable_id,
                 createdAt: notification.createdAt,
                 updatedAt: notification.updatedAt,
-                userId,
+                userId: parentComment.user_id,
                 UserNotification: {
                     read_at: null,
                     createdAt: new Date(),
@@ -279,7 +293,7 @@ class NotificationService {
             const notificationData = {
                 type: "follow",
                 title: `${currentUser.full_name} đã bắt đầu theo dõi bạn`,
-                to: `/@${currentUser.username}`,
+                to: `/profile/@${currentUser.username}`,
                 notifiableType: "User",
                 notifiableId: currentUser.id,
                 userId: targetUser.id,

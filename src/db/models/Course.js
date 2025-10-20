@@ -46,6 +46,11 @@ module.exports = (sequelize) => {
                 type: DataTypes.STRING(255),
                 allowNull: true,
             },
+            total_comment: {
+                type: DataTypes.INTEGER,
+                allowNull: false,
+                defaultValue: 0,
+            },
             total_track: {
                 type: DataTypes.INTEGER,
                 defaultValue: 0,

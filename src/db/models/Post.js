@@ -30,6 +30,11 @@ module.exports = (sequelize) => {
                     notEmpty: true,
                 },
             },
+            total_comment: {
+                type: DataTypes.INTEGER,
+                allowNull: false,
+                defaultValue: 0,
+            },
             description: {
                 type: DataTypes.TEXT,
                 allowNull: true,
