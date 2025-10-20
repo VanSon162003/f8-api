@@ -127,8 +127,6 @@ const getAllVideos = async (limit = 8) => {
 };
 
 const registerCourse = async (currentUser, courseId) => {
-    console.log(courseId, currentUser);
-
     try {
         if (!currentUser)
             throw new Error("Bạn cần đăng nhập trước khi đăng ký khoá học");

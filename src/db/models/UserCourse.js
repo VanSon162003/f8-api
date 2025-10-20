@@ -40,7 +40,8 @@ module.exports = (sequelize) => {
         },
         {
             tableName: "user_course",
-            timestamps: false,
+            timestamps: true,
+            underscored: true,
         }
     );
 
