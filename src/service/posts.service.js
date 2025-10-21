@@ -1,6 +1,6 @@
 const { Post, Tag, PostTag, User } = require("@models");
 const { Op, where } = require("sequelize");
-
+const readingTime = require("reading-time");
 const getAllPosts = async (
     page = 1,
     limit = 10,
@@ -224,6 +224,7 @@ const getPostBySlug = async (slug) => {
 const fs = require("fs");
 const path = require("path");
 const { json } = require("express");
+const { read } = require("./notifications.service");
 
 const createPost = async (file, postData, authorId) => {
     try {
@@ -253,6 +254,8 @@ const createPost = async (file, postData, authorId) => {
             thumbnail = `uploads/imgs/${filename}`.replace(/\\/g, "/");
         }
 
+        const stats = readingTime(content);
+
         // Create post
         const post = await Post.create({
             title,
@@ -265,6 +268,7 @@ const createPost = async (file, postData, authorId) => {
             views_count: 0,
             meta_title: metaTitle,
             meta_description: metaContent,
+            reading_time: Math.ceil(stats.minutes),
         });
 
         // Handle tags

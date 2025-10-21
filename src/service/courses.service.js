@@ -42,14 +42,19 @@ const getByUser = async (currentUser) => {
         const courses = await currentUser.getCourses({
             include: [
                 {
-                    model: User,
-                    as: "creator",
-                    attributes: ["id", "full_name", "username", "avatar"],
-                },
-                {
                     model: UserCourseProgress,
                     as: "userProgress",
+                    where: { user_id: currentUser.id },
+                    required: false,
                 },
+            ],
+
+            order: [
+                [
+                    { model: UserCourseProgress, as: "userProgress" },
+                    "last_viewed_at",
+                    "DESC",
+                ],
             ],
         });
 

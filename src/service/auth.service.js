@@ -278,7 +278,20 @@ const getUserProfile = async (username) => {
                 model: Course,
                 as: "courses",
                 through: { attributes: [] },
-                // attributes: ['id', 'name', 'thumbnail', 'price', 'is_pro']
+
+                include: [
+                    {
+                        model: User,
+                        as: "creator",
+                        attributes: ["id", "full_name", "username", "avatar"],
+                    },
+
+                    {
+                        model: User,
+                        as: "users",
+                        attributes: ["id", "full_name", "username", "avatar"],
+                    },
+                ],
             },
             {
                 model: UserActivity,

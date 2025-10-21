@@ -57,6 +57,11 @@ module.exports = (sequelize) => {
                 defaultValue: 0,
                 allowNull: true,
             },
+            reading_time: {
+                type: DataTypes.INTEGER,
+                allowNull: false,
+                defaultValue: 0,
+            },
 
             meta_title: {
                 type: DataTypes.STRING(255),
