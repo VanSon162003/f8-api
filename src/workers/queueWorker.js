@@ -1,7 +1,7 @@
 const sendVerifyEmailJob = require("../job/sendVerifyEmailJob");
 const forgotPasswordJob = require("../job/forgotPasswordJob");
 
-const QueueService = require("../service/queue.service");
+const QueueService = require("../service/api/queue.service");
 
 const handlers = {
     sendVerifyEmailJob,

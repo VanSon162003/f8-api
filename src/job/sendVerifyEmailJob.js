@@ -1,7 +1,7 @@
 const transporter = require("../config/mailer");
 const loadEmail = require("../utils/loadEmail");
 const { User } = require("../db/models");
-const jwtService = require("../service/jwt.service");
+const jwtService = require("../service/api/jwt.service");
 const { where } = require("sequelize");
 
 async function sendVerifyEmailJob(job) {

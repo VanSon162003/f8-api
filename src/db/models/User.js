@@ -36,6 +36,7 @@ module.exports = (sequelize) => {
                 type: DataTypes.STRING(255),
                 allowNull: true,
             },
+
             two_factor_enabled: {
                 type: DataTypes.BOOLEAN,
                 defaultValue: false,
@@ -72,6 +73,16 @@ module.exports = (sequelize) => {
             about: {
                 type: DataTypes.TEXT,
                 allowNull: true,
+            },
+            status: {
+                type: DataTypes.ENUM("active", "locked"),
+                allowNull: false,
+                defaultValue: "active",
+            },
+            role: {
+                type: DataTypes.ENUM("user", "instructor", "admin"),
+                allowNull: false,
+                defaultValue: "user",
             },
             posts_count: {
                 type: DataTypes.INTEGER,

@@ -1,9 +1,9 @@
-const response = require("../utils/response");
-const { User, AccessToken, Notification, Course } = require("../db/models");
-const jwtService = require("../service/api/jwt.service");
+const response = require("@/utils/response");
+const { User, AccessToken, Notification, Course } = require("@/db/models");
+const jwtService = require("@/service/api/jwt.service");
 const { or } = require("sequelize");
 
-async function checkAuth(req, res, next) {
+async function checkAuthAdmin(req, res, next) {
     try {
         const token = req.headers?.authorization?.replace("Bearer ", "");
 
@@ -24,7 +24,7 @@ async function checkAuth(req, res, next) {
         const payload = jwtService.verifyAccessToken(token);
 
         const user = await User.findOne({
-            where: { id: payload.userId },
+            where: { id: payload.userId, role: "admin" },
 
             include: [
                 {
@@ -54,4 +54,4 @@ async function checkAuth(req, res, next) {
     }
 }
 
-module.exports = checkAuth;
+module.exports = checkAuthAdmin;
