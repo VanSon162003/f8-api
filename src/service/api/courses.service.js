@@ -13,6 +13,7 @@ const { where } = require("sequelize");
 const getAll = async () => {
     try {
         const courses = await Course.findAll({
+            where: { status: "published" },
             include: [
                 {
                     model: User,
@@ -40,6 +41,7 @@ const getByUser = async (currentUser) => {
 
     try {
         const courses = await currentUser.getCourses({
+            where: { status: "published" },
             include: [
                 {
                     model: UserCourseProgress,
@@ -72,7 +74,9 @@ const getBySlug = async (
     trackLimit = 10
 ) => {
     try {
-        const course = await Course.findOne({ where: { slug } });
+        const course = await Course.findOne({
+            where: { slug, status: "published" },
+        });
         if (!course) return null;
 
         const tracks = await Track.findAll({
@@ -201,6 +205,7 @@ const getProgress = async (currentUser, courseId) => {
     const course = await Course.findOne({
         where: {
             id: courseId,
+            status: "published",
         },
         attributes: ["id"],
         include: {
@@ -227,7 +232,7 @@ const getUserLessonProgress = async (currentUser, courseId) => {
         }
 
         const course = await Course.findOne({
-            where: { id: courseId },
+            where: { id: courseId, status: "published" },
             include: {
                 model: Track,
                 as: "tracks",

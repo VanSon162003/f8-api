@@ -3,7 +3,7 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const router = require("./src/routes/api");
-const adminRouter = require("./src/routes/admin/index");
+const adminRouter = require("./src/routes/admin");
 const methodOverride = require("method-override");
 const { sequelize } = require("./src/db/models");
 
@@ -46,11 +46,7 @@ app.use(methodOverride("_method"));
 app.use(express.static("public"));
 
 // router tổng
-app.use(
-    "/admin",
-
-    adminRouter
-);
+app.use("/admin", adminRouter);
 
 app.use("/api/v1", router);
 

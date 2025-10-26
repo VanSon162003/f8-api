@@ -46,6 +46,11 @@ module.exports = (sequelize) => {
                 type: DataTypes.STRING(255),
                 allowNull: true,
             },
+            status: {
+                type: DataTypes.ENUM("published", "draft"),
+                allowNull: false,
+                defaultValue: "draft",
+            },
             total_comment: {
                 type: DataTypes.INTEGER,
                 allowNull: false,

@@ -1,7 +1,13 @@
 const { User } = require("@/db/models");
 const { Op } = require("sequelize");
 
-const getAll = async (limit = 10, offset = 0, searchQuery = "") => {
+const getAll = async (
+    limit = 10,
+    offset = 0,
+    searchQuery = "",
+    currentUser
+) => {
+    if (currentUser.role !== "admin") throw new Error("Unauthorized");
     // Tìm tổng số users và danh sách users theo điều kiện
     const { count, rows } = await User.findAndCountAll({
         limit,
@@ -49,7 +55,9 @@ const getAll = async (limit = 10, offset = 0, searchQuery = "") => {
     };
 };
 
-const updateUser = async (id, updateData) => {
+const updateUser = async (id, updateData, currentUser) => {
+    if (currentUser.role !== "admin") throw new Error("Unauthorized");
+
     const user = await User.findByPk(id);
 
     if (!user) {
