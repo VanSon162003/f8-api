@@ -53,8 +53,6 @@ exports.getAllCourses = async (
 };
 
 exports.createCourse = async (courseData, currentUser) => {
-    console.log(courseData);
-
     if (!currentUser || currentUser.role !== "admin") {
         throw new ApiError(403, "Unauthorized");
     }
