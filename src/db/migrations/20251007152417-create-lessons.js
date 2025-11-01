@@ -50,7 +50,7 @@ module.exports = {
             },
 
             video_type: {
-                type: Sequelize.ENUM("youtube", "internal"),
+                type: Sequelize.ENUM("Youtube", "Upload"),
                 defaultValue: "youtube",
             },
 

@@ -5,10 +5,12 @@ const usersRoute = require("./users.route");
 const adminAuthRoute = require("./auth.route");
 const courseRoute = require("./course.route");
 const tracksRoute = require("./tracks.route");
+const lessonsRoute = require("./lessons.route");
 
 router.use("/users", usersRoute);
 router.use("/auth", adminAuthRoute);
 router.use("/courses", courseRoute);
+router.use("/lessons", lessonsRoute);
 router.use("/tracks", tracksRoute);
 
 module.exports = router;

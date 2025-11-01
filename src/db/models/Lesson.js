@@ -56,7 +56,7 @@ module.exports = (sequelize) => {
                 defaultValue: "Lesson",
             },
             video_type: {
-                type: DataTypes.ENUM("youtube", "internal"),
+                type: DataTypes.ENUM("Youtube", "Upload"),
                 defaultValue: "youtube",
             },
             video_url: {

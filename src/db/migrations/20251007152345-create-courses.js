@@ -42,6 +42,11 @@ module.exports = {
             level: {
                 type: Sequelize.STRING(255),
             },
+            status: {
+                type: Sequelize.ENUM("published", "draft"),
+                defaultValue: "draft",
+            },
+
             total_track: {
                 type: Sequelize.INTEGER,
                 defaultValue: 0,
