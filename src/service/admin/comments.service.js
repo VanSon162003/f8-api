@@ -47,14 +47,14 @@ class CommentsService {
                 Post: [
                     ...new Set(
                         comments
-                            .filter((c) => c.commentable_type === "Post")
+                            .filter((c) => c.commentable_type === "post")
                             .map((c) => c.commentable_id)
                     ),
                 ],
                 Course: [
                     ...new Set(
                         comments
-                            .filter((c) => c.commentable_type === "Course")
+                            .filter((c) => c.commentable_type === "question")
                             .map((c) => c.commentable_id)
                     ),
                 ],
@@ -83,9 +83,10 @@ class CommentsService {
             // Transform comments with efficient lookups
             const transformedComments = comments.map((comment) => {
                 const plainComment = comment.get({ plain: true });
+
                 let commentable = null;
 
-                if (plainComment.commentable_type === "Post") {
+                if (plainComment.commentable_type === "post") {
                     const post = postsMap.get(plainComment.commentable_id);
                     if (post) {
                         commentable = {
@@ -94,7 +95,7 @@ class CommentsService {
                             title: post.title,
                         };
                     }
-                } else if (plainComment.commentable_type === "Course") {
+                } else if (plainComment.commentable_type === "question") {
                     const course = coursesMap.get(plainComment.commentable_id);
                     if (course) {
                         commentable = {

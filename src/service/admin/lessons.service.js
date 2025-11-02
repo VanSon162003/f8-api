@@ -71,6 +71,8 @@ class LessonsService {
                     "video_url",
                     "thumbnail",
                     "content",
+                    "created_at",
+                    "updated_at",
                 ],
                 limit,
                 offset,

@@ -19,6 +19,7 @@ class PostsService {
                     "id",
                     "title",
                     "user_id",
+                    "content",
                     "views_count",
                     "is_approved",
                 ],
