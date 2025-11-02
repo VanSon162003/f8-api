@@ -33,7 +33,7 @@ exports.getAllCourses = async (
             },
         ],
 
-        order: [["created_at", "ASC"]],
+        order: [["created_at", "DESC"]],
         offset: offset,
         limit: limit,
     });

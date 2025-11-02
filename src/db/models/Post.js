@@ -30,6 +30,11 @@ module.exports = (sequelize) => {
                     notEmpty: true,
                 },
             },
+            is_approved: {
+                type: DataTypes.BOOLEAN,
+                allowNull: false,
+                defaultValue: false,
+            },
             total_comment: {
                 type: DataTypes.INTEGER,
                 allowNull: false,
@@ -87,8 +92,8 @@ module.exports = (sequelize) => {
         {
             tableName: "posts",
             timestamps: true,
-            createdAt: "created_at",
-            updatedAt: "updated_at",
+            underscored: true,
+
             hooks: {
                 beforeCreate: async (post) => {
                     if (post.title && !post.slug) {
@@ -132,6 +137,13 @@ module.exports = (sequelize) => {
             foreignKey: "post_id",
             otherKey: "tag_id",
             as: "tags",
+        });
+
+        Post.belongsToMany(models.Topic, {
+            through: "post_topic",
+            foreignKey: "post_id",
+            otherKey: "topic_id",
+            as: "topics",
         });
     };
 

@@ -6,10 +6,14 @@ const adminAuthRoute = require("./auth.route");
 const courseRoute = require("./course.route");
 const tracksRoute = require("./tracks.route");
 const lessonsRoute = require("./lessons.route");
+const postsRoute = require("./posts.route");
+const commentsRoute = require("./comments.route");
 
 router.use("/users", usersRoute);
 router.use("/auth", adminAuthRoute);
 router.use("/courses", courseRoute);
+router.use("/posts", postsRoute);
+router.use("/comments", commentsRoute);
 router.use("/lessons", lessonsRoute);
 router.use("/tracks", tracksRoute);
 

@@ -36,7 +36,7 @@ const getAll = async (
             "role",
             "created_at",
         ],
-        order: [["created_at", "ASC"]],
+        order: [["created_at", "DESC"]],
     });
 
     // Tính toán thông tin pagination

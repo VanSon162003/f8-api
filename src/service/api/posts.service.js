@@ -13,6 +13,7 @@ const getAllPosts = async (
         const whereClause = {};
         if (status) {
             whereClause.status = status;
+            // whereClause.is_approved = true;
         }
 
         if (search) {
@@ -242,7 +243,7 @@ const createPost = async (file, postData, authorId) => {
 
         // Nếu có file upload thì lưu vào src/uploads/imgs
         if (file) {
-            const srcDir = path.join(__dirname, "../uploads/imgs");
+            const srcDir = path.join(__dirname, "../../uploads/imgs");
             if (!fs.existsSync(srcDir)) {
                 fs.mkdirSync(srcDir, { recursive: true });
             }
@@ -309,7 +310,7 @@ const updatePost = async (id, file, postData, authorId) => {
 
         // Nếu có file upload thì lưu vào src/uploads/imgs
         if (file) {
-            const srcDir = path.join(__dirname, "../uploads/imgs");
+            const srcDir = path.join(__dirname, "../../uploads/imgs");
             if (!fs.existsSync(srcDir)) {
                 fs.mkdirSync(srcDir, { recursive: true });
             }
