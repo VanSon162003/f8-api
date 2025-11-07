@@ -41,7 +41,10 @@ module.exports = {
             let emailSuffix = 1;
             while (usedEmails.has(email)) {
                 const pad = `_${emailSuffix}`;
-                const trimmedLocal = emailLocal.slice(0, Math.max(1, maxLocalLen - pad.length));
+                const trimmedLocal = emailLocal.slice(
+                    0,
+                    Math.max(1, maxLocalLen - pad.length)
+                );
                 email = `${trimmedLocal}${pad}@${domain}`;
                 emailSuffix++;
             }
@@ -85,7 +88,6 @@ module.exports = {
         try {
             // Log a sample record for debugging
             // eslint-disable-next-line no-console
-            console.log("Sample user record:", users[0]);
             await queryInterface.bulkInsert("users", users, {});
         } catch (err) {
             // eslint-disable-next-line no-console

@@ -14,6 +14,7 @@ const paymentsRoute = require("./payments.route");
 const pusherRoute = require("./pusher.route");
 const notificationsRoute = require("./notifications.route");
 const searchRoute = require("./search.route");
+const slidesRoute = require("./slides.route");
 
 router.use("/notifications", notificationsRoute);
 router.use("/search", searchRoute);
@@ -28,5 +29,6 @@ router.use("/uploads", uploadsRoute);
 router.use("/courses", coursesRoute);
 router.use("/auth", authRoute);
 router.use("/learning-paths", learningPathsRoute);
+router.use("/slides", slidesRoute);
 
 module.exports = router;

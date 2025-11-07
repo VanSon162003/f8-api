@@ -31,9 +31,7 @@ const verifyAccessToken = (token, secret = JWT_SECRET) => {
         const payload = jwt.verify(token, secret);
 
         return payload;
-    } catch (error) {
-        console.log(error);
-    }
+    } catch (error) {}
 };
 
 module.exports = {

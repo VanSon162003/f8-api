@@ -43,7 +43,6 @@ const login = async (email, password) => {
     // );
 
     const tokenData = jwtService.generateAccessToken(user.id);
-    console.log(tokenData);
 
     // Trả về thông tin user và token
     return {

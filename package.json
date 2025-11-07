@@ -1,10 +1,12 @@
 {
     "scripts": {
         "start": "node --watch server.js",
-        "queue": "node --watch src/workers/queueWorker.js"
+        "queue": "node --watch src/workers/queueWorker.js",
+        "schedule": "node --watch src/tasks/index.js"
     },
     "dependencies": {
         "@faker-js/faker": "^10.0.0",
+        "adm-zip": "^0.5.16",
         "axios": "^1.12.2",
         "bcrypt": "^6.0.0",
         "cors": "^2.8.5",
@@ -13,6 +15,7 @@
         "express": "^5.1.0",
         "express-jwt": "^8.5.1",
         "express-validator": "^7.2.1",
+        "form-data": "^4.0.4",
         "ioredis": "^5.3.2",
         "joi": "^18.0.1",
         "jsonwebtoken": "^9.0.2",
@@ -23,12 +26,15 @@
         "multer": "^2.0.2",
         "mysql2": "^3.15.1",
         "nightmare": "^3.0.2",
+        "node-cron": "^4.2.1",
         "node-fetch": "^3.3.2",
         "nodemailer": "^7.0.9",
         "pusher": "^5.2.0",
         "qrcode": "^1.5.1",
+        "react-helmet": "^6.1.0",
         "reading-time": "^1.5.0",
         "sequelize": "^6.37.7",
+        "sharp": "^0.34.5",
         "slugify": "^1.6.6",
         "speakeasy": "^2.0.0",
         "stripe": "^19.1.0"

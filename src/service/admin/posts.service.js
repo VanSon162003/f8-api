@@ -13,8 +13,14 @@ class PostsService {
                   }
                 : {};
 
-            // Get posts with pagination and search
-            const { rows: posts, count } = await Post.findAndCountAll({
+            // Get total count first
+            const totalCount = await Post.count({
+                where: whereCondition,
+                distinct: true,
+            });
+
+            // Get posts with pagination, search and related data
+            const posts = await Post.findAll({
                 attributes: [
                     "id",
                     "title",
@@ -43,10 +49,10 @@ class PostsService {
             return {
                 posts,
                 pagination: {
-                    total: count,
+                    total: totalCount,
                     page: +page,
                     limit: +limit,
-                    total_pages: Math.ceil(count / limit),
+                    total_pages: Math.ceil(totalCount / limit),
                 },
             };
         } catch (error) {

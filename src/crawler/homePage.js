@@ -9,23 +9,14 @@ const userAgents = {
 };
 
 async function checkRobotsTxt() {
-    console.log("🧾 Kiểm tra robots.txt ...");
     try {
         const res = await axios.get(url + "robots.txt");
-        console.log("Trạng thái:", res.status);
-        console.log(
-            "Nội dung robots.txt:\n",
-            res.data || "(Không có file robots.txt)"
-        );
-        console.log("\n");
     } catch (err) {
         console.log("⚠️ Không tìm thấy robots.txt hoặc bị chặn:", err.message);
     }
 }
 
 async function compareUserAgents() {
-    console.log("🕵️‍♂️ So sánh phản hồi giữa browser và bot ...");
-
     try {
         const [browserRes, botRes] = await Promise.all([
             axios.get(url, { headers: { "User-Agent": userAgents.browser } }),
@@ -34,24 +25,6 @@ async function compareUserAgents() {
 
         const browserText = browserRes.data;
         const botText = botRes.data;
-
-        console.log("Browser:", {
-            status: browserRes.status,
-            length: browserText.length,
-        });
-        console.log("Bot:", {
-            status: botRes.status,
-            length: botText.length,
-        });
-
-        console.log("\n🔍 Kết quả so sánh:");
-        if (browserText.length > botText.length * 2) {
-            console.log(
-                "⚠️ Có thể website chặn crawler hoặc trả nội dung khác khi là bot!"
-            );
-        } else {
-            console.log("✅ Không phát hiện chặn crawler rõ ràng.");
-        }
     } catch (err) {
         console.error("Lỗi khi so sánh:", err.message);
     }

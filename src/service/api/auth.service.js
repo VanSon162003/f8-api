@@ -433,8 +433,6 @@ const updateCurrentUser = async (currentUser, file, body) => {
 
     // social fields
     Object.keys(socialMap).forEach((k) => {
-        console.log(body[k]);
-
         updatable[socialMap[k]] = body[k] || null;
     });
 

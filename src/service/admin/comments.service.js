@@ -4,7 +4,10 @@ const { Op } = require("sequelize");
 class CommentsService {
     async getAllComments(page, limit, search) {
         try {
-            const offset = (page - 1) * limit;
+            // Ensure page and limit are valid numbers
+            const currentPage = Math.max(parseInt(page) || 1, 1);
+            const itemsPerPage = Math.max(parseInt(limit) || 10, 1);
+            const offset = (currentPage - 1) * itemsPerPage;
 
             // Build search condition with content and user name search
             const whereCondition = search
@@ -16,8 +19,22 @@ class CommentsService {
                   }
                 : {};
 
-            // Get comments with pagination and search
-            const { rows: comments, count } = await Comment.findAndCountAll({
+            // Get total count first
+            const totalCount = await Comment.count({
+                where: whereCondition,
+                include: [
+                    {
+                        model: User,
+                        as: "user",
+                        attributes: [],
+                    },
+                ],
+                distinct: true,
+                paranoid: false,
+            });
+
+            // Get comments for current page
+            const comments = await Comment.findAll({
                 attributes: [
                     "id",
                     "content",
@@ -35,10 +52,9 @@ class CommentsService {
                     },
                 ],
                 where: whereCondition,
-                limit: +limit,
+                limit: itemsPerPage,
                 offset: offset,
                 order: [["created_at", "DESC"]],
-                distinct: true,
                 paranoid: false,
             });
 
@@ -112,13 +128,19 @@ class CommentsService {
                 };
             });
 
+            // Calculate total pages
+            const totalPages = Math.ceil(totalCount / itemsPerPage);
+
+            // Adjust current page if it exceeds total pages
+            const adjustedPage = Math.min(currentPage, totalPages || 1);
+
             return {
                 comments: transformedComments,
                 pagination: {
-                    total: count,
-                    page: +page,
-                    limit: +limit,
-                    total_pages: Math.ceil(count / limit),
+                    total: totalCount,
+                    page: adjustedPage,
+                    limit: itemsPerPage,
+                    total_pages: totalPages,
                 },
             };
         } catch (error) {

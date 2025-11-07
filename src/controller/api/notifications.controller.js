@@ -7,8 +7,6 @@ exports.read = async (req, res) => {
 
         response.success(res, 200, data);
     } catch (error) {
-        console.log(error);
-
         response.error(res, 400, error);
     }
 };

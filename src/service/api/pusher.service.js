@@ -166,7 +166,6 @@ class PusherService {
                 UserNotification: currentUser.toJSON(),
                 userId: data.type === "post" ? post.user_id : course.creator_id,
             });
-            console.log(123);
         } catch (error) {
             console.log(error);
         }

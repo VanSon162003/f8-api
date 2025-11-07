@@ -10,7 +10,6 @@ const axios = require("axios");
                 password: "Password123",
             }
         );
-        console.log("OK", res.status, res.data);
     } catch (err) {
         console.error(
             "ERR status",

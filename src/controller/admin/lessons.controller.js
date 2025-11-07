@@ -41,8 +41,6 @@ class LessonsController {
             const { id: lessonId } = req.params;
             const { position, track_id: trackId } = req.body;
 
-            console.log(lessonId, position, trackId);
-
             if (position === undefined || !trackId) {
                 return response.error(
                     res,

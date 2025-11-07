@@ -7,7 +7,6 @@ async function up() {
             type: db.Sequelize.TEXT,
             allowNull: true,
         });
-        console.log("Added two_factor_recovery_codes");
     } catch (e) {
         console.error("skip two_factor_recovery_codes:", e.message);
     }
@@ -18,7 +17,6 @@ async function up() {
             allowNull: false,
             defaultValue: 0,
         });
-        console.log("Added two_factor_failed_count");
     } catch (e) {
         console.error("skip two_factor_failed_count:", e.message);
     }
@@ -28,7 +26,6 @@ async function up() {
             type: db.Sequelize.DATE,
             allowNull: true,
         });
-        console.log("Added two_factor_locked_until");
     } catch (e) {
         console.error("skip two_factor_locked_until:", e.message);
     }

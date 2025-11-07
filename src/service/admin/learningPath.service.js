@@ -6,7 +6,12 @@ const path = require("path");
 class LearningPathService {
     // Get all learning paths with pagination and search
     async getAllLearningPaths(page, limit, search) {
-        const offset = (page - 1) * limit;
+        // Ensure page and limit are numbers
+        const currentPage = parseInt(page) || 1;
+        const itemsPerPage = parseInt(limit) || 10;
+        const offset = (currentPage - 1) * itemsPerPage;
+
+        // Build search condition
         const where = search
             ? {
                   [Op.or]: [
@@ -16,28 +21,34 @@ class LearningPathService {
               }
             : {};
 
-        const { count, rows: learning_paths } =
-            await LearningPath.findAndCountAll({
-                where,
-                include: [
-                    {
-                        model: Course,
-                        as: "courses",
-                        through: { attributes: [] }, // Exclude junction table attributes
-                    },
-                ],
-                limit: parseInt(limit),
-                offset: parseInt(offset),
-                order: [["created_at", "DESC"]],
-            });
+        // Get total count first
+        const total = await LearningPath.count({
+            where,
+            distinct: true,
+        });
+
+        // Get learning paths with pagination, search and courses
+        const learning_paths = await LearningPath.findAll({
+            where,
+            include: [
+                {
+                    model: Course,
+                    as: "courses",
+                    through: { attributes: [] },
+                },
+            ],
+            limit: itemsPerPage,
+            offset: offset,
+            order: [["created_at", "DESC"]],
+        });
 
         return {
             learning_paths,
             pagination: {
-                total: count,
-                page: parseInt(page),
-                limit: parseInt(limit),
-                totalPages: Math.ceil(count / limit),
+                total,
+                page: currentPage,
+                limit: itemsPerPage,
+                totalPages: Math.ceil(total / itemsPerPage),
             },
         };
     }
@@ -165,8 +176,6 @@ class LearningPathService {
     async addCourseToPath(pathId, courseId, position) {
         const learningPath = await this.getLearningPathById(pathId);
         const course = await Course.findByPk(courseId);
-
-        console.log(course, courseId, 123);
 
         if (!course) {
             throw new Error("Course not found");

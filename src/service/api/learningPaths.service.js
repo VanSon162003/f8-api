@@ -107,8 +107,6 @@ const getBySlug = async (slug, currentUser = null) => {
           )
         : [];
 
-    // console.log();
-
     // 🔹 Duyệt qua các khóa học và xử lý song song (Promise.all)
     const coursesWithProgress = await Promise.all(
         (lpJson.courses || []).map(async (course) => {

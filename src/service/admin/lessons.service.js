@@ -274,8 +274,6 @@ class LessonsService {
 
     // Update lesson
     async updateLesson(id, data, currentUser) {
-        console.log(data);
-
         if (!currentUser || currentUser.role !== "admin") {
             throw new ApiError(403, "Unauthorized");
         }
