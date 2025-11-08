@@ -4,12 +4,20 @@ const slidesController = require("@/controller/admin/slides.controller");
 const upload = require("@/middlewares/upload");
 const checkAuth = require("@/middlewares/checkAuth");
 
-router.use(checkAuth);
-
 router.get("/", slidesController.getSlides);
-router.post("/", upload.single("image"), slidesController.createSlide);
-router.patch("/:id", upload.single("image"), slidesController.updateSlide);
-router.delete("/:id", slidesController.deleteSlide);
-router.patch("/order", slidesController.updateOrder);
+router.post(
+    "/",
+    upload.single("image"),
+    checkAuth,
+    slidesController.createSlide
+);
+router.patch(
+    "/:id",
+    upload.single("image"),
+    checkAuth,
+    slidesController.updateSlide
+);
+router.delete("/:id", checkAuth, slidesController.deleteSlide);
+router.patch("/order", checkAuth, slidesController.updateOrder);
 
 module.exports = router;

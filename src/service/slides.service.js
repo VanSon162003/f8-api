@@ -47,6 +47,8 @@ class SlidesService {
     }
 
     async getAllSlides() {
+        console.log(123);
+
         return await Slide.findAll({
             where: { isActive: true },
             order: [["order", "ASC"]],
