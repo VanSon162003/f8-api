@@ -1,7 +1,13 @@
 const response = require("@/utils/response");
-const { User, AccessToken, Notification, Course } = require("@/db/models");
+const {
+    User,
+    AccessToken,
+    Notification,
+    Course,
+    sequelize,
+} = require("@/db/models");
 const jwtService = require("@/service/api/jwt.service");
-const { or } = require("sequelize");
+const { Op } = require("sequelize");
 
 async function checkAuthAdmin(req, res, next) {
     try {
@@ -24,7 +30,12 @@ async function checkAuthAdmin(req, res, next) {
         const payload = jwtService.verifyAccessToken(token);
 
         const user = await User.findOne({
-            where: { id: payload.userId, role: "admin" },
+            where: {
+                id: payload.userId,
+                role: {
+                    [Op.or]: ["admin", "instructor"],
+                },
+            },
 
             include: [
                 {
@@ -48,8 +59,11 @@ async function checkAuthAdmin(req, res, next) {
         }
 
         req.user = user;
+
         next();
     } catch (error) {
+        console.log(error);
+
         next();
     }
 }

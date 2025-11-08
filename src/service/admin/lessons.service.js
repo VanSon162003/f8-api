@@ -32,7 +32,11 @@ const deleteFile = (filePath) => {
 class LessonsService {
     // Get all lessons with pagination
     async getAllLessons(page, limit, currentUser, search = "") {
-        if (!currentUser || currentUser.role !== "admin") {
+        if (
+            !currentUser ||
+            (currentUser?.role !== "admin" &&
+                currentUser?.role !== "instructor")
+        ) {
             throw new ApiError(403, "Unauthorized");
         }
         const offset = (page - 1) * limit;
@@ -92,7 +96,11 @@ class LessonsService {
 
     // Update lesson position
     async updatePosition(lessonId, position, trackId, currentUser) {
-        if (!currentUser || currentUser.role !== "admin") {
+        if (
+            !currentUser ||
+            (currentUser?.role !== "admin" &&
+                currentUser?.role !== "instructor")
+        ) {
             throw new ApiError(403, "Unauthorized");
         }
 
@@ -202,15 +210,19 @@ class LessonsService {
 
     // Create new lesson
     async createLesson(data, currentUser) {
-        if (!currentUser || currentUser.role !== "admin") {
+        if (
+            !currentUser ||
+            (currentUser?.role !== "admin" &&
+                currentUser?.role !== "instructor")
+        ) {
             throw new ApiError(403, "Unauthorized");
         }
 
         const transaction = await sequelize.transaction();
 
         try {
-            const track = await Track.findByPk(data.track_id);
-            if (!track) {
+            const existingTrack = await Track.findByPk(data.track_id);
+            if (!existingTrack) {
                 throw new Error("Không tìm thấy chương học");
             }
 
@@ -235,6 +247,35 @@ class LessonsService {
             const lastPosition =
                 trackLessons.length > 0 ? trackLessons[0].position : 0;
 
+            // Get video duration if video URL is provided
+            let duration = null;
+            if (data.video_url && data.video_type === "upload") {
+                try {
+                    // Đường dẫn tuyệt đối đến thư mục gốc của dự án
+                    const rootDir = path.resolve(__dirname, "../../");
+                    // Xây dựng đường dẫn đầy đủ đến file video
+                    const videoPath = path.join(
+                        rootDir,
+                        "uploads",
+                        data.video_url
+                    );
+
+                    console.log(rootDir, data.video_url, 11111111111111111);
+
+                    // Kiểm tra file có tồn tại không
+                    if (!fs.existsSync(videoPath)) {
+                        console.error("Video file not found:", videoPath);
+                        throw new Error("Video file not found");
+                    }
+
+                    duration = await require("@/utils/getVideoDuration")(
+                        videoPath
+                    );
+                } catch (error) {
+                    console.error("Error getting video duration:", error);
+                }
+            }
+
             // Create lesson with next position
             const lesson = await Lesson.create(
                 {
@@ -244,16 +285,61 @@ class LessonsService {
                     video_type: data.video_type,
                     video_url: data.video_url,
                     thumbnail,
+                    duration,
                     position: lastPosition + 1,
                 },
                 { transaction }
             );
 
-            // Update track's total_lesson count
+            // Update track's total_lesson count and duration
             await Track.increment("total_lesson", {
                 where: { id: data.track_id },
                 transaction,
             });
+
+            // Cập nhật total_duration của track
+            const trackLessonsDuration = await Lesson.sum("duration", {
+                where: { track_id: data.track_id },
+                transaction,
+            });
+
+            await Track.update(
+                { total_duration: trackLessonsDuration || 0 },
+                {
+                    where: { id: data.track_id },
+                    transaction,
+                }
+            );
+
+            // Cập nhật total_duration của course
+            const track = await Track.findByPk(data.track_id, {
+                transaction,
+                include: [
+                    {
+                        model: Course,
+                        as: "course",
+                    },
+                ],
+            });
+
+            if (track && track.course) {
+                const courseTracks = await Track.findAll({
+                    where: { course_id: track.course.id },
+                    transaction,
+                });
+
+                const courseDuration = courseTracks.reduce((total, track) => {
+                    return total + (track.total_duration || 0);
+                }, 0);
+
+                await Course.update(
+                    { total_duration: courseDuration },
+                    {
+                        where: { id: track.course.id },
+                        transaction,
+                    }
+                );
+            }
 
             await transaction.commit();
             return lesson;
@@ -274,7 +360,11 @@ class LessonsService {
 
     // Update lesson
     async updateLesson(id, data, currentUser) {
-        if (!currentUser || currentUser.role !== "admin") {
+        if (
+            !currentUser ||
+            (currentUser?.role !== "admin" &&
+                currentUser?.role !== "instructor")
+        ) {
             throw new ApiError(403, "Unauthorized");
         }
 
@@ -317,14 +407,96 @@ class LessonsService {
                 });
             }
 
+            // Get video duration if video URL is provided or changed
+            let duration = lesson.duration;
+            if (
+                data.video_url &&
+                data.video_type === "upload" &&
+                data.video_url !== lesson.video_url
+            ) {
+                try {
+                    // Đường dẫn tuyệt đối đến thư mục gốc của dự án
+                    const rootDir = path.resolve(__dirname, "../../");
+                    // Xây dựng đường dẫn đầy đủ đến file video
+                    const videoPath = path.join(rootDir, data.video_url);
+
+                    // Kiểm tra file có tồn tại không
+                    if (!fs.existsSync(videoPath)) {
+                        console.error("Video file not found:", videoPath);
+                        throw new Error("Video file not found");
+                    }
+
+                    duration = await require("@/utils/getVideoDuration")(
+                        videoPath
+                    );
+                } catch (error) {
+                    console.error("Error getting video duration:", error);
+                }
+            }
+
             // Update lesson with new data
             const updatedLesson = await lesson.update(
                 {
                     ...data,
                     thumbnail,
+                    duration,
                 },
                 { transaction }
             );
+
+            // Cập nhật total_duration của track cũ (nếu chuyển track)
+            const updateTrackDuration = async (trackId) => {
+                const trackLessonsDuration = await Lesson.sum("duration", {
+                    where: { track_id: trackId },
+                    transaction,
+                });
+
+                const trackToUpdate = await Track.findByPk(trackId, {
+                    transaction,
+                    include: [
+                        {
+                            model: Course,
+                            as: "course",
+                        },
+                    ],
+                });
+
+                await Track.update(
+                    { total_duration: trackLessonsDuration || 0 },
+                    {
+                        where: { id: trackId },
+                        transaction,
+                    }
+                );
+
+                // Cập nhật total_duration của course
+                if (trackToUpdate && trackToUpdate.course) {
+                    const courseTracks = await Track.findAll({
+                        where: { course_id: trackToUpdate.course.id },
+                        transaction,
+                    });
+
+                    const courseDuration = courseTracks.reduce((total, t) => {
+                        return total + (t.total_duration || 0);
+                    }, 0);
+
+                    await Course.update(
+                        { total_duration: courseDuration },
+                        {
+                            where: { id: trackToUpdate.course.id },
+                            transaction,
+                        }
+                    );
+                }
+            };
+
+            // Cập nhật duration cho track hiện tại
+            await updateTrackDuration(data.track_id || lesson.track_id);
+
+            // Nếu đã chuyển track, cập nhật cả track cũ
+            if (data.track_id && data.track_id !== lesson.track_id) {
+                await updateTrackDuration(lesson.track_id);
+            }
 
             await transaction.commit();
             return updatedLesson;
@@ -345,7 +517,11 @@ class LessonsService {
 
     // Delete lesson
     async deleteLesson(id, currentUser) {
-        if (!currentUser || currentUser.role !== "admin") {
+        if (
+            !currentUser ||
+            (currentUser?.role !== "admin" &&
+                currentUser?.role !== "instructor")
+        ) {
             throw new ApiError(403, "Unauthorized");
         }
 

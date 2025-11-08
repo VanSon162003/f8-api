@@ -1,10 +1,16 @@
 const { Track, Course, sequelize } = require("@/db/models");
 const { Op } = require("sequelize");
 
+const ApiError = require("@/utils/ApiError");
+
 class TracksService {
     // Get all tracks with pagination
     async getAllTracks(page, limit, currentUser, search = "") {
-        if (!currentUser || currentUser.role !== "admin") {
+        if (
+            !currentUser ||
+            (currentUser?.role !== "admin" &&
+                currentUser?.role !== "instructor")
+        ) {
             throw new ApiError(403, "Unauthorized");
         }
         const offset = (page - 1) * limit;
@@ -57,7 +63,11 @@ class TracksService {
 
     // Create new track
     async createTrack(data, currentUser) {
-        if (!currentUser || currentUser.role !== "admin") {
+        if (
+            !currentUser ||
+            (currentUser?.role !== "admin" &&
+                currentUser?.role !== "instructor")
+        ) {
             throw new ApiError(403, "Unauthorized");
         }
 
@@ -87,7 +97,11 @@ class TracksService {
 
     // Update track
     async updateTrack(id, data, currentUser) {
-        if (!currentUser || currentUser.role !== "admin") {
+        if (
+            !currentUser ||
+            (currentUser?.role !== "admin" &&
+                currentUser?.role !== "instructor")
+        ) {
             throw new ApiError(403, "Unauthorized");
         }
         const track = await Track.findByPk(id);
@@ -98,7 +112,11 @@ class TracksService {
 
     // Delete track
     async deleteTrack(id, currentUser) {
-        if (!currentUser || currentUser.role !== "admin") {
+        if (
+            !currentUser ||
+            (currentUser?.role !== "admin" &&
+                currentUser?.role !== "instructor")
+        ) {
             throw new ApiError(403, "Unauthorized");
         }
         const track = await Track.findByPk(id);
@@ -110,7 +128,11 @@ class TracksService {
 
     // Update track positions
     async updatePositions(tracks, currentUser) {
-        if (!currentUser || currentUser.role !== "admin") {
+        if (
+            !currentUser ||
+            (currentUser?.role !== "admin" &&
+                currentUser?.role !== "instructor")
+        ) {
             throw new ApiError(403, "Unauthorized");
         }
 

@@ -200,7 +200,7 @@ const getProgress = async (currentUser, courseId) => {
     }
     const tracks = await getTracksByCourseId(courseId);
 
-    const totalLessonByCourse = tracks.flatMap((item) => item.lessons).length;
+    const totalLessonByCourse = tracks.flatMap((item) => item?.lessons)?.length;
 
     const course = await Course.findOne({
         where: {
@@ -214,8 +214,13 @@ const getProgress = async (currentUser, courseId) => {
             where: {
                 user_id: currentUser?.id || 0,
             },
+            required: false,
         },
     });
+
+    if (!course) {
+        throw new Error("Khóa học không tồn tại");
+    }
 
     return {
         ...course.toJSON(),

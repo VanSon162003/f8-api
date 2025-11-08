@@ -89,7 +89,14 @@ const verifyPaymentSession = async (sessionId) => {
                     if (course && user) {
                         // await user.addCourse(course);
 
-                        await coursesService.registerCourse(user, course.id);
+                        try {
+                            await coursesService.registerCourse(
+                                user,
+                                course.id
+                            );
+                        } catch (error) {
+                            console.log(error, 123);
+                        }
                     }
                     break;
 

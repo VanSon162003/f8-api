@@ -20,10 +20,10 @@ class SettingsService {
             // Nếu có upload logo mới
             if (logo) {
                 // Xóa logo cũ nếu có
-                if (settings.logo) {
+                if (settings?.logo) {
                     try {
                         await fs.unlink(
-                            path.join(__dirname, "../../", settings.logo)
+                            path.join(__dirname, "../../", settings?.logo)
                         );
                     } catch (error) {
                         console.error("Error deleting old logo:", error);
@@ -31,13 +31,13 @@ class SettingsService {
                 }
 
                 // Lưu logo mới
-                const ext = path.extname(logo.originalname);
+                const ext = path.extname(logo?.originalname);
                 const filename = `logo`;
                 const uploadDir = path.join(__dirname, "../../uploads/imgs");
                 await fs.mkdir(uploadDir, { recursive: true });
 
                 // Read the uploaded file into a buffer
-                const imageBuffer = await fs.readFile(logo.path);
+                const imageBuffer = await fs.readFile(logo?.path);
 
                 // Process the image directly from buffer
                 const finalPath = path.join(uploadDir, filename);

@@ -10,7 +10,10 @@ exports.getAllCourses = async (
     limit = 10,
     search = ""
 ) => {
-    if (!currentUser || currentUser.role !== "admin") {
+    if (
+        !currentUser ||
+        (currentUser?.role !== "admin" && currentUser?.role !== "instructor")
+    ) {
         throw new ApiError(403, "Unauthorized");
     }
 
@@ -53,7 +56,10 @@ exports.getAllCourses = async (
 };
 
 exports.createCourse = async (courseData, currentUser) => {
-    if (!currentUser || currentUser.role !== "admin") {
+    if (
+        !currentUser ||
+        (currentUser?.role !== "admin" && currentUser?.role !== "instructor")
+    ) {
         throw new ApiError(403, "Unauthorized");
     }
     if (!courseData.title) {

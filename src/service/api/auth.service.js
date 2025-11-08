@@ -8,9 +8,10 @@ const jwt = require("./jwt.service");
 const jwtService = require("./jwt.service");
 const { Op } = require("sequelize");
 
-const refreshTokenService = require("../api/refreshToken.service");
+const refreshTokenService = require("@/service/api/refreshToken.service");
 const { where } = require("sequelize");
-const auth = require("../../config/auth");
+
+const notificationService = require("@/service/api/notifications.service");
 
 // Cập nhật hoặc tạo mới user_activity cho user theo ngày và loại hành động
 const updateUserActivity = async (userId, activityType = "all") => {
@@ -354,7 +355,6 @@ const followUser = async (currentUser, username) => {
     await updateUserActivity(currentUser.id, "follow");
 
     // Send follow notification
-    const notificationService = require("../notifications.service");
     try {
         await notificationService.sendFollowNotification(
             target.id,
@@ -441,7 +441,7 @@ const updateCurrentUser = async (currentUser, file, body) => {
         const fs = require("fs");
         const path = require("path");
 
-        const uploadDir = path.join(__dirname, "../uploads/imgs");
+        const uploadDir = path.join(__dirname, "../../uploads/imgs");
         if (!fs.existsSync(uploadDir)) {
             fs.mkdirSync(uploadDir, { recursive: true });
         }

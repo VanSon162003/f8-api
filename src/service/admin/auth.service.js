@@ -14,7 +14,7 @@ const login = async (email, password) => {
     }
 
     // Kiểm tra role
-    if (user.role !== "admin") {
+    if (user.role !== "admin" && user.role !== "instructor") {
         throw new ApiError(403, "Bạn không có quyền truy cập");
     }
 
@@ -28,19 +28,6 @@ const login = async (email, password) => {
     if (!isPasswordValid) {
         throw new ApiError(401, "Email hoặc mật khẩu không chính xác");
     }
-
-    // Tạo JWT token
-    // const token = jwt.sign(
-    //     {
-    //         id: user.id,
-    //         email: user.email,
-    //         role: user.role,
-    //     },
-    //     config.JWT_SECRET,
-    //     {
-    //         expiresIn: config.JWT_EXPIRES_IN,
-    //     }
-    // );
 
     const tokenData = jwtService.generateAccessToken(user.id);
 

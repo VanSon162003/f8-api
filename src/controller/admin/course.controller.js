@@ -4,6 +4,8 @@ const response = require("@/utils/response");
 exports.getAllCourses = async (req, res, next) => {
     try {
         const { page = 1, limit = 10, search = "" } = req.query;
+        console.log(req.user);
+
         const courses = await courseService.getAllCourses(
             req.user,
             parseInt(page),

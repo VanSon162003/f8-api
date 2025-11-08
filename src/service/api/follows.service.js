@@ -13,42 +13,49 @@ class FollowService {
             const existingFollow = await Follow.findOne({
                 where: {
                     follower_id: followerId,
-                    followed_id: followedId
-                }
+                    followed_id: followedId,
+                },
             });
 
             if (existingFollow) {
                 // Unfollow
                 await existingFollow.destroy();
-                await updateUserActivity(followerId, 'unfollow_user');
+                await updateUserActivity(followerId, "unfollow_user");
                 return {
                     following: false,
-                    message: "Đã huỷ theo dõi thành công"
+                    message: "Đã huỷ theo dõi thành công",
                 };
             }
 
             // Create new follow
             await Follow.create({
                 follower_id: followerId,
-                followed_id: followedId
+                followed_id: followedId,
             });
 
             // Get both users for notification
             const [currentUser, followedUser] = await Promise.all([
                 User.findByPk(followerId),
-                User.findByPk(followedId)
+                User.findByPk(followedId),
             ]);
 
-            // Send notification
-            if (currentUser && followedUser) {
-                await notificationsService.sendFollowNotification(followedUser, currentUser);
+            try {
+                // Send notification
+                if (currentUser && followedUser) {
+                    await notificationsService.sendFollowNotification(
+                        followedUser,
+                        currentUser
+                    );
+                }
+            } catch (error) {
+                console.log(error);
             }
 
-            await updateUserActivity(followerId, 'follow_user');
+            await updateUserActivity(followerId, "follow_user");
 
             return {
                 following: true,
-                message: "Đã theo dõi thành công"
+                message: "Đã theo dõi thành công",
             };
         } catch (error) {
             throw new Error(error.message);
@@ -60,12 +67,12 @@ class FollowService {
             const follow = await Follow.findOne({
                 where: {
                     follower_id: followerId,
-                    followed_id: followedId
-                }
+                    followed_id: followedId,
+                },
             });
 
             return {
-                following: !!follow
+                following: !!follow,
             };
         } catch (error) {
             throw new Error(error.message);
@@ -78,25 +85,27 @@ class FollowService {
 
             const { count, rows } = await Follow.findAndCountAll({
                 where: {
-                    followed_id: userId
+                    followed_id: userId,
                 },
-                include: [{
-                    model: User,
-                    as: 'follower',
-                    attributes: ['id', 'username', 'full_name', 'avatar']
-                }],
+                include: [
+                    {
+                        model: User,
+                        as: "follower",
+                        attributes: ["id", "username", "full_name", "avatar"],
+                    },
+                ],
                 limit: parseInt(limit),
-                offset: parseInt(offset)
+                offset: parseInt(offset),
             });
 
             return {
-                followers: rows.map(row => row.follower),
+                followers: rows.map((row) => row.follower),
                 pagination: {
                     currentPage: page,
                     totalPages: Math.ceil(count / limit),
                     totalItems: count,
-                    itemsPerPage: limit
-                }
+                    itemsPerPage: limit,
+                },
             };
         } catch (error) {
             throw new Error(error.message);
@@ -109,25 +118,27 @@ class FollowService {
 
             const { count, rows } = await Follow.findAndCountAll({
                 where: {
-                    follower_id: userId
+                    follower_id: userId,
                 },
-                include: [{
-                    model: User,
-                    as: 'followed',
-                    attributes: ['id', 'username', 'full_name', 'avatar']
-                }],
+                include: [
+                    {
+                        model: User,
+                        as: "followed",
+                        attributes: ["id", "username", "full_name", "avatar"],
+                    },
+                ],
                 limit: parseInt(limit),
-                offset: parseInt(offset)
+                offset: parseInt(offset),
             });
 
             return {
-                following: rows.map(row => row.followed),
+                following: rows.map((row) => row.followed),
                 pagination: {
                     currentPage: page,
                     totalPages: Math.ceil(count / limit),
                     totalItems: count,
-                    itemsPerPage: limit
-                }
+                    itemsPerPage: limit,
+                },
             };
         } catch (error) {
             throw new Error(error.message);
