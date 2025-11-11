@@ -21,7 +21,7 @@ const getOne = async (filename, range) => {
     }
 
     // Xử lý stream video theo từng phần
-    const chunkSize = 1 * 10 ** 6; // 1MB 
+    const chunkSize = 1 * 10 ** 6; // 1MB
     const start = Number(range.replace(/\D/g, ""));
     const end = Math.min(start + chunkSize, fileSize - 1);
 

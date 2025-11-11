@@ -297,6 +297,22 @@ class LessonsService {
                 transaction,
             });
 
+            // Also increment course's total_lesson count
+            try {
+                const trackForCourse = await Track.findByPk(data.track_id, {
+                    transaction,
+                });
+                if (trackForCourse && trackForCourse.course_id) {
+                    await Course.increment("total_lesson", {
+                        where: { id: trackForCourse.course_id },
+                        transaction,
+                    });
+                }
+            } catch (err) {
+                // don't block lesson creation if course update fails, but log
+                console.error("Failed to increment course total_lesson:", err);
+            }
+
             // Cập nhật total_duration của track
             const trackLessonsDuration = await Lesson.sum("duration", {
                 where: { track_id: data.track_id },
@@ -397,14 +413,44 @@ class LessonsService {
 
             // If track_id is changing, update total_lesson counts
             if (data.track_id && data.track_id !== lesson.track_id) {
+                // decrement old track
                 await Track.decrement("total_lesson", {
                     where: { id: lesson.track_id },
                     transaction,
                 });
+                // increment new track
                 await Track.increment("total_lesson", {
                     where: { id: data.track_id },
                     transaction,
                 });
+
+                // Also update course total_lesson counts for both old and new courses
+                try {
+                    const oldTrack = await Track.findByPk(lesson.track_id, {
+                        transaction,
+                    });
+                    const newTrack = await Track.findByPk(data.track_id, {
+                        transaction,
+                    });
+
+                    if (oldTrack && oldTrack.course_id) {
+                        await Course.decrement("total_lesson", {
+                            where: { id: oldTrack.course_id },
+                            transaction,
+                        });
+                    }
+                    if (newTrack && newTrack.course_id) {
+                        await Course.increment("total_lesson", {
+                            where: { id: newTrack.course_id },
+                            transaction,
+                        });
+                    }
+                } catch (err) {
+                    console.error(
+                        "Failed to update course total_lesson on track change:",
+                        err
+                    );
+                }
             }
 
             // Get video duration if video URL is provided or changed
