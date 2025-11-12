@@ -42,7 +42,8 @@ module.exports = {
                     "pending",
                     "succeeded",
                     "failed",
-                    "canceled"
+                    "canceled",
+                    "completed"
                 ),
                 defaultValue: "pending",
             },
