@@ -259,8 +259,11 @@ const getPaymentDetail = async (req, res) => {
  * Response: { received: true }
  */
 const handleWebhook = async (req, res) => {
+    console.log(123, req.headers);
+
     try {
-        const { signature } = req.headers;
+        const { authorization } = req.headers;
+        const signature = authorization.split(" ")[1];
         const payload = req.body;
 
         errorLogger.logInfo("Webhook received", {
@@ -271,6 +274,7 @@ const handleWebhook = async (req, res) => {
 
         // Verify webhook signature
         const isValid = sepayService.verifyWebhookSignature(payload, signature);
+        console.log(payload, isValid, 11111111);
 
         if (!isValid) {
             errorLogger.logWarning("Webhook signature verification failed", {

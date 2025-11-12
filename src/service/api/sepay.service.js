@@ -338,6 +338,8 @@ const verifyWebhookSignature = (payload, signature) => {
             .update(payloadString)
             .digest("hex");
 
+        console.log(secret, payloadString, signature, 9999999, hash);
+
         const isValid = hash === signature;
 
         if (!isValid) {
@@ -770,7 +772,6 @@ const cancelPayment = async (paymentId, currentUser) => {
         }
 
         // Update payment status to cancelled
-        canceled;
         await payment.update({ status: "cancelled" });
 
         errorLogger.logInfo("Payment cancelled successfully", {
