@@ -14,93 +14,61 @@ const {
     errorResponses,
 } = require("@utils/sepayErrors");
 
+// Sepay Configuration
 const SEPAY_API_URL =
-    process.env.NODE_ENV === "production"
-        ? process.env.SEPAY_API_URL_PROD || "https://api.sepay.vn/api"
-        : process.env.SEPAY_API_URL || "https://sandbox.sepay.vn/api";
-
-// Mock mode for offline testing
-const MOCK_MODE = process.env.SEPAY_MOCK_MODE === "true";
-
-// Store access token with expiry
-let sepayAccessToken = null;
-let sepayTokenExpiry = null;
+    process.env.SEPAY_API_URL || "https://sandbox.sepay.vn/api";
+const SEPAY_API_KEY = process.env.SEPAY_API_KEY || "";
+let accessTokenCache = {
+    token: null,
+    expiresAt: null,
+};
 
 // Retry manager for API calls
 const retryManager = new RetryManager(3, 1000);
 
 /**
- * Generate mock QR code for testing
- * Returns QR URL similar to real Sepay
- */
-const generateMockQR = (amount, courseId) => {
-    // Format: https://qr.sepay.vn/img?acc=ACCOUNT&bank=BANK&amount=AMOUNT&des=COURSE_ID
-    const qrUrl = `https://qr.sepay.vn/img?acc=VQRQAFFTL0100&bank=MBBank&amount=${amount}&des=DH${courseId}`;
-    return {
-        qrCode: qrUrl,
-        qrDataURL: qrUrl,
-        referenceCode: `SEPAY_${Date.now()}_MOCK`,
-    };
-};
-
-/**
- * Generate mock access token for testing
- */
-const generateMockAccessToken = () => {
-    return `mock_token_${Date.now()}_${Math.random()
-        .toString(36)
-        .substring(7)}`;
-};
-
-/**
- * Get valid access token from Sepay
+ * Get access token from Sepay API
+ * @returns {Promise<string>} Access token
  */
 const getAccessToken = async () => {
-    // If in mock mode, return mock token
-    if (MOCK_MODE) {
-        errorLogger.logInfo("MOCK MODE: Using mock Sepay token");
-        return generateMockAccessToken();
-    }
-
-    // If token exists and not expired, return it
-    if (sepayAccessToken && sepayTokenExpiry && Date.now() < sepayTokenExpiry) {
-        return sepayAccessToken;
-    }
-
     try {
-        const response = await axios.post(
-            `${SEPAY_API_URL}/v3/authorization/login`,
-            {
-                username: process.env.SEPAY_MERCHANT_USERNAME,
-                password: process.env.SEPAY_MERCHANT_PASSWORD,
-                clientId: process.env.SEPAY_CLIENT_ID,
-                clientSecret: process.env.SEPAY_CLIENT_SECRET,
-            }
-        );
-
-        if (!response.data.success) {
-            throw new Error(`Sepay auth failed: ${response.data.message}`);
+        // Return cached token if still valid
+        if (accessTokenCache.token && accessTokenCache.expiresAt > Date.now()) {
+            return accessTokenCache.token;
         }
 
-        sepayAccessToken = response.data.data.accessToken;
-        // Set expiry to 30 minutes before actual expiry
-        sepayTokenExpiry =
-            Date.now() + (response.data.data.expiresIn - 600) * 1000;
+        // For development, use API key directly
+        const token = SEPAY_API_KEY;
 
-        errorLogger.logInfo("Sepay access token obtained successfully");
-        return sepayAccessToken;
+        if (!token) {
+            const error = new Error(
+                "SEPAY_API_KEY not configured in environment"
+            );
+            error.code = "MISSING_API_KEY";
+            throw error;
+        }
+
+        // Cache token (expires in 1 hour)
+        accessTokenCache = {
+            token,
+            expiresAt: Date.now() + 3600000,
+        };
+
+        errorLogger.logInfo("Access token retrieved successfully");
+        return token;
     } catch (error) {
-        const networkError = new NetworkError(error);
-        errorLogger.log(networkError, { step: "getAccessToken" });
-        throw networkError;
+        errorLogger.log(error, { step: "getAccessToken" });
+        throw error;
     }
 };
 
 /**
  * Generate QR code for payment
+ * Format: https://qr.sepay.vn/img?acc=ACCOUNT&bank=BANK&amount=AMOUNT&des=COURSE_ID
  * @param {number} amount - Amount in VND
  * @param {string} description - Payment description
  * @param {string} referenceCode - Order/transaction reference
+ * @param {number} courseId - Course ID
  * @returns {Promise<{qrCode, qrDataURL, referenceCode}>}
  */
 const generateQRCode = async (amount, description, referenceCode, courseId) => {
@@ -112,84 +80,47 @@ const generateQRCode = async (amount, description, referenceCode, courseId) => {
             throw error;
         }
 
-        // Validate reference code
-        if (!validators.isValidReferenceCode(referenceCode)) {
-            const error = new Error("Invalid reference code format");
-            error.code = "INVALID_REFERENCE_CODE";
-            throw error;
-        }
+        // Get Sepay account info from env
+        const accountNumber =
+            process.env.SEPAY_ACCOUNT_NUMBER || "VQRQAFFTL0100";
+        const bankCode = process.env.SEPAY_BANK_CODE || "MBBank";
 
-        // If in mock mode, return mock QR
-        if (MOCK_MODE) {
-            errorLogger.logInfo("MOCK MODE: Using mock QR code", {
-                referenceCode,
-                amount,
-                courseId,
-            });
-            const mockQR = generateMockQR(amount, courseId);
-            return {
-                ...mockQR,
-                referenceCode: referenceCode, // Use provided reference code, not mock one
-            };
-        }
-
-        const token = await getAccessToken();
-
-        const payload = {
-            accountNumber: process.env.SEPAY_ACCOUNT_NUMBER,
-            accountName: process.env.SEPAY_ACCOUNT_NAME,
-            acqId: process.env.SEPAY_ACCOUNT_BANK, // MB = 970422
-            amount: Math.ceil(amount),
-            description: description || "F8 Course Payment",
-            addInfo: referenceCode,
-        };
-
-        const response = await axios.post(
-            `${SEPAY_API_URL}/v3/transfer-in/generate-qr`,
-            payload,
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    "Content-Type": "application/json",
-                },
-                timeout: 10000, // 10 second timeout
-            }
-        );
-
-        if (!response.data.success) {
-            const error = new Error(response.data.message);
-            error.code = response.data.code || "SEPAY_API_ERROR";
-            throw error;
-        }
+        // Build QR URL with amount and course ID
+        // Format: https://qr.sepay.vn/img?acc=ACCOUNT&bank=BANK&amount=AMOUNT&des=COURSE_ID
+        const qrUrl = `https://qr.sepay.vn/img?acc=${accountNumber}&bank=${bankCode}&amount=${Math.ceil(
+            amount
+        )}&des=DH${courseId}`;
 
         errorLogger.logInfo("QR code generated successfully", {
             referenceCode,
+            amount,
+            courseId,
+            qrUrl,
         });
 
         return {
-            qrCode: response.data.data.qr, // Base64 image
-            qrDataURL: response.data.data.qrDataURL, // Raw QR data
-            referenceCode: response.data.data.code, // Sepay reference
+            qrCode: qrUrl,
+            qrDataURL: qrUrl,
+            referenceCode: referenceCode,
         };
     } catch (error) {
-        const context = { step: "generateQRCode", referenceCode, amount };
-
-        if (error.code === "ECONNABORTED" || !error.code) {
-            const networkError = new NetworkError(error);
-            errorLogger.log(networkError, context);
-            throw networkError;
-        }
-
+        const context = {
+            step: "generateQRCode",
+            referenceCode,
+            amount,
+            courseId,
+        };
         errorLogger.log(error, context);
         throw error;
     }
 };
 
 /**
- * Create payment record and generate QR
- * @param {Object} currentUser - Current user object
- * @param {number} courseId - Course ID
- * @returns {Promise<Payment>}
+ * Generate QR code for payment
+ * @param {number} amount - Amount in VND
+ * @param {string} description - Payment description
+ * @param {string} referenceCode - Order/transaction reference
+ * @returns {Promise<{qrCode, qrDataURL, referenceCode}>}
  */
 const createTransaction = async (currentUser, courseId) => {
     try {
@@ -839,6 +770,7 @@ const cancelPayment = async (paymentId, currentUser) => {
         }
 
         // Update payment status to cancelled
+        canceled;
         await payment.update({ status: "cancelled" });
 
         errorLogger.logInfo("Payment cancelled successfully", {
