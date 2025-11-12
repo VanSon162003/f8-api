@@ -30,7 +30,8 @@ module.exports = (sequelize, DataTypes) => {
                     "pending",
                     "succeeded",
                     "failed",
-                    "canceled"
+                    "canceled",
+                    "completed"
                 ),
                 defaultValue: "pending",
             },
@@ -44,6 +45,35 @@ module.exports = (sequelize, DataTypes) => {
             },
             stripe_session_id: {
                 type: DataTypes.STRING,
+                allowNull: true,
+            },
+            reference_code: {
+                type: DataTypes.STRING,
+                allowNull: true,
+                unique: true,
+            },
+            qr_code: {
+                type: DataTypes.TEXT,
+                allowNull: true,
+            },
+            order_code: {
+                type: DataTypes.STRING,
+                allowNull: true,
+            },
+            sepay_transaction_id: {
+                type: DataTypes.STRING,
+                allowNull: true,
+            },
+            payment_method: {
+                type: DataTypes.ENUM("stripe", "sepay"),
+                defaultValue: "stripe",
+            },
+            expires_at: {
+                type: DataTypes.DATE,
+                allowNull: true,
+            },
+            transaction_date: {
+                type: DataTypes.DATE,
                 allowNull: true,
             },
         },
