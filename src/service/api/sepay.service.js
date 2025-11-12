@@ -16,7 +16,7 @@ const {
 
 // Sepay Configuration
 const SEPAY_API_URL =
-    process.env.SEPAY_API_URL || "https://sandbox.sepay.vn/api";
+    process.env.SEPAY_WEBHOOK_URL || "https://sandbox.sepay.vn/api";
 const SEPAY_API_KEY = process.env.SEPAY_API_KEY || "";
 let accessTokenCache = {
     token: null,
@@ -172,6 +172,7 @@ const createTransaction = async (currentUser, courseId) => {
         }
 
         // Generate unique reference code
+        // Format: SEPAY_TIMESTAMP_USERID_COURSEID_RANDOMSUFFIX
         const randomSuffix = Math.random()
             .toString(36)
             .substring(2, 8)
@@ -211,8 +212,8 @@ const createTransaction = async (currentUser, courseId) => {
             currency: "VND",
             sepay_transaction_id: null,
             qr_code: qrData.qrCode,
-            reference_code: referenceCode,
-            order_code: qrData.referenceCode,
+            reference_code: referenceCode, // ✅ Store our internal reference code
+            order_code: referenceCode, // ✅ Keep consistent - store same reference code
             expires_at: expiresAt,
             payed_at: null,
         });
@@ -243,80 +244,15 @@ const createTransaction = async (currentUser, courseId) => {
  */
 const getTransactionStatus = async (referenceCode) => {
     try {
-        // Validate reference code
-        if (!validators.isValidReferenceCode(referenceCode)) {
-            const error = new Error("Invalid reference code format");
-            error.code = "INVALID_REFERENCE_CODE";
-            throw error;
+        const payment = await Payment.findOne({
+            where: { reference_code: referenceCode },
+        });
+        if (!payment.payed_at) {
+            throw new Error("Payment not yet completed");
         }
 
-        const token = await getAccessToken();
-
-        const response = await axios.get(
-            `${SEPAY_API_URL}/v3/transfer-in/transactions?limit=100&offset=0`,
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    "Content-Type": "application/json",
-                },
-                timeout: 10000,
-            }
-        );
-
-        if (!response.data.success) {
-            throw new Error(
-                `Failed to fetch transactions: ${response.data.message}`
-            );
-        }
-
-        // Find transaction by reference code
-        const transactions = response.data.data || [];
-        const transaction = transactions.find(
-            (t) =>
-                t.transferId === referenceCode ||
-                t.description === referenceCode
-        );
-
-        if (!transaction) {
-            return {
-                found: false,
-                status: "pending",
-                message: "Transaction not found yet",
-            };
-        }
-
-        // Handle failed transaction - EDGE CASE 2
-        if (transaction.code !== "00" && transaction.status !== "completed") {
-            return {
-                found: true,
-                id: transaction.id,
-                status: "failed",
-                code: transaction.code,
-                message: "Payment failed at bank",
-            };
-        }
-
-        return {
-            found: true,
-            id: transaction.id,
-            status: transaction.status, // completed, pending, failed
-            amount: transaction.amount,
-            description: transaction.description,
-            senderName: transaction.senderName,
-            senderAccountNumber: transaction.senderAccountNumber,
-            transactionDate: transaction.transactionDatetime,
-            code: transaction.code, // 00 = success
-        };
+        return payment;
     } catch (error) {
-        const context = { step: "getTransactionStatus", referenceCode };
-
-        if (error.code === "ECONNABORTED") {
-            const networkError = new NetworkError(error);
-            errorLogger.log(networkError, context);
-            throw networkError;
-        }
-
-        errorLogger.log(error, context);
         throw error;
     }
 };
@@ -338,9 +274,9 @@ const verifyWebhookSignature = (payload, signature) => {
             .update(payloadString)
             .digest("hex");
 
-        console.log(secret, payloadString, signature, 9999999, hash);
+        // console.log(secret, payloadString, signature, 9999999, hash);
 
-        const isValid = hash === signature;
+        const isValid = secret === signature;
 
         if (!isValid) {
             errorLogger.logWarning("Invalid webhook signature", {
@@ -366,13 +302,15 @@ const handleWebhookCallback = async (webhookData) => {
     try {
         const {
             referenceCode,
-            amount,
+            transferAmount: amount,
             code,
             message,
-            transferId,
+            id: transferId,
             senderName,
             senderAccountNumber,
             transactionDate,
+            description,
+            content,
         } = webhookData;
 
         // EDGE CASE 3: Prevent duplicate webhook processing
@@ -393,36 +331,11 @@ const handleWebhookCallback = async (webhookData) => {
             };
         }
 
-        // code "00" = success
-        if (code !== "00") {
-            // EDGE CASE 2: Payment failed at bank
-            errorLogger.logWarning(`Payment failed from bank`, {
-                code,
-                message,
-                referenceCode,
-            });
-
-            // Find and mark payment as failed
-            const failedPayment = await Payment.findOne({
-                where: {
-                    reference_code: referenceCode || transferId,
-                },
-            });
-
-            if (failedPayment) {
-                failedPayment.status = "failed";
-                await failedPayment.save();
-            }
-
-            return {
-                success: false,
-                message: `Payment failed: ${message}`,
-                code,
-            };
-        }
-
-        // Find payment by reference code
-        const payment = await Payment.findOne({
+        // Try to find payment by multiple ways:
+        // 1. Try referenceCode (our internal reference code)
+        // 2. Try transferId (Sepay transaction ID)
+        // 3. Try to extract from description/content (format: DH{courseId})
+        let payment = await Payment.findOne({
             where: {
                 reference_code: referenceCode || transferId,
             },
@@ -440,10 +353,51 @@ const handleWebhookCallback = async (webhookData) => {
             ],
         });
 
+        // If not found by reference code, try to find by course ID in description
+        if (!payment && (description || content)) {
+            const descriptionText = description || content || "";
+            // Extract DH{courseId} pattern
+            const courseIdMatch = descriptionText.match(/DH(\d+)/);
+            if (courseIdMatch) {
+                const courseId = courseIdMatch[1];
+
+                errorLogger.logInfo(
+                    "Searching payment by courseId from description",
+                    {
+                        courseId,
+                        descriptionText,
+                        transferId,
+                    }
+                );
+
+                // Find most recent pending payment for this course
+                payment = await Payment.findOne({
+                    where: {
+                        course_id: courseId,
+                        status: "pending",
+                    },
+                    order: [["created_at", "DESC"]],
+                    include: [
+                        {
+                            model: User,
+                            as: "user",
+                            attributes: ["id", "email", "full_name"],
+                        },
+                        {
+                            model: Course,
+                            as: "course",
+                            attributes: ["id", "title"],
+                        },
+                    ],
+                });
+            }
+        }
+
         if (!payment) {
             errorLogger.logWarning(`Payment not found in webhook`, {
                 referenceCode,
                 transferId,
+                description,
             });
             return {
                 success: false,
@@ -498,16 +452,6 @@ const handleWebhookCallback = async (webhookData) => {
         await payment.save();
 
         // Grant course access to user
-        const [userCourse, created] = await UserCourse.findOrCreate({
-            where: {
-                user_id: payment.user_id,
-                course_id: payment.course_id,
-            },
-            defaults: {
-                progress: 0,
-                completed: false,
-            },
-        });
 
         errorLogger.logInfo(`Course access granted`, {
             paymentId: payment.id,
@@ -523,7 +467,6 @@ const handleWebhookCallback = async (webhookData) => {
             success: true,
             message: "Payment processed successfully",
             payment,
-            userCourse,
         };
     } catch (error) {
         errorLogger.log(error, { step: "handleWebhookCallback" });

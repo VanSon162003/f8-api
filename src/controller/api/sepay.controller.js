@@ -132,57 +132,8 @@ const checkPaymentStatus = async (req, res) => {
             return response.error(res, 404, "Transaction not found");
         }
 
-        // If transaction is completed, update database
-        if (
-            transactionStatus.status === "COMPLETED" ||
-            transactionStatus.status === "completed"
-        ) {
-            // Find payment record by reference code
-            const payment = await Payment.findOne({
-                where: { reference_code: referenceCode },
-            });
-
-            if (
-                payment &&
-                !sepayService.validators.isPaymentCompleted(payment.status)
-            ) {
-                errorLogger.logInfo("Updating payment to completed", {
-                    paymentId: payment.id,
-                });
-
-                await sepayService.handleWebhookCallback({
-                    referenceCode,
-                    status: "COMPLETED",
-                    amount: transactionStatus.amount,
-                    code: transactionStatus.code,
-                    transactionDate: transactionStatus.transactionDate,
-                    transferId: transactionStatus.id,
-                    senderName: transactionStatus.senderName,
-                    senderAccountNumber: transactionStatus.senderAccountNumber,
-                });
-            }
-        }
-
-        return response.success(res, 200, {
-            success: true,
-            data: {
-                status: transactionStatus.status,
-                amount: transactionStatus.amount,
-                transactionDate: transactionStatus.transactionDate,
-                code: transactionStatus.code,
-                message: `Payment status: ${transactionStatus.status}`,
-            },
-        });
+        return response.success(res, 200, transactionStatus);
     } catch (error) {
-        errorLogger.log(error, { endpoint: "/sepay/status/:referenceCode" });
-
-        if (error instanceof NetworkError) {
-            return response.error(res, 503, error.message, {
-                code: error.code,
-                retryable: true,
-            });
-        }
-
         return response.error(
             res,
             500,
@@ -259,8 +210,6 @@ const getPaymentDetail = async (req, res) => {
  * Response: { received: true }
  */
 const handleWebhook = async (req, res) => {
-    console.log(123, req.headers);
-
     try {
         const { authorization } = req.headers;
         const signature = authorization.split(" ")[1];
@@ -274,7 +223,6 @@ const handleWebhook = async (req, res) => {
 
         // Verify webhook signature
         const isValid = sepayService.verifyWebhookSignature(payload, signature);
-        console.log(payload, isValid, 11111111);
 
         if (!isValid) {
             errorLogger.logWarning("Webhook signature verification failed", {
