@@ -329,7 +329,7 @@ const getTransactionStatus = async (referenceCode) => {
  */
 const verifyWebhookSignature = (payload, signature) => {
     try {
-        const secret = process.env.SEPAY_WEBHOOK_SECRET || "";
+        const secret = process.env.SEPAY_API_KEY || "";
         const payloadString = JSON.stringify(payload);
 
         // Create HMAC SHA256 hash
