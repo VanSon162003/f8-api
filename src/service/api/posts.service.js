@@ -258,6 +258,8 @@ const createPost = async (file, postData, authorId) => {
 
         const stats = readingTime(content);
 
+        console.log(status);
+
         const dataCreate = published_at
             ? {
                   title,
@@ -271,7 +273,7 @@ const createPost = async (file, postData, authorId) => {
                   meta_title: metaTitle,
                   meta_description: metaContent,
                   reading_time: Math.ceil(stats.minutes),
-                  published_at,
+                  published_at: published_at === "null" ? null : published_at,
               }
             : {
                   title,
@@ -287,6 +289,8 @@ const createPost = async (file, postData, authorId) => {
                   reading_time: Math.ceil(stats.minutes),
                   published_at: null,
               };
+
+        console.log(dataCreate, 123123132);
 
         // Create post
         const post = await Post.create(dataCreate);
