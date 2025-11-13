@@ -258,21 +258,37 @@ const createPost = async (file, postData, authorId) => {
 
         const stats = readingTime(content);
 
+        const dataCreate = published_at
+            ? {
+                  title,
+                  content,
+                  description,
+                  thumbnail,
+                  status: status || "draft",
+                  visibility,
+                  user_id: authorId,
+                  views_count: 0,
+                  meta_title: metaTitle,
+                  meta_description: metaContent,
+                  reading_time: Math.ceil(stats.minutes),
+                  published_at,
+              }
+            : {
+                  title,
+                  content,
+                  description,
+                  thumbnail,
+                  status: status || "draft",
+                  visibility,
+                  user_id: authorId,
+                  views_count: 0,
+                  meta_title: metaTitle,
+                  meta_description: metaContent,
+                  reading_time: Math.ceil(stats.minutes),
+              };
+
         // Create post
-        const post = await Post.create({
-            title,
-            content,
-            description,
-            thumbnail,
-            status: status || "draft",
-            visibility,
-            user_id: authorId,
-            views_count: 0,
-            meta_title: metaTitle,
-            meta_description: metaContent,
-            reading_time: Math.ceil(stats.minutes),
-            published_at,
-        });
+        const post = await Post.create(dataCreate);
 
         // Handle tags
         if (tags && tags.length > 0) {
