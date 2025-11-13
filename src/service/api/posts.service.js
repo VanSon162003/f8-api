@@ -285,6 +285,7 @@ const createPost = async (file, postData, authorId) => {
                   meta_title: metaTitle,
                   meta_description: metaContent,
                   reading_time: Math.ceil(stats.minutes),
+                  published_at: null,
               };
 
         // Create post
