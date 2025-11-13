@@ -181,9 +181,6 @@ const getPostById = async (id) => {
             throw new Error("Post not found");
         }
 
-        // Increment view count
-        // await post.increment("views_count");
-
         return post;
     } catch (error) {
         throw new Error(error.message);
@@ -214,7 +211,9 @@ const getPostBySlug = async (slug) => {
         }
 
         // Increment view count
-        await post.increment("views_count");
+        if (post.is_approved && post.status === "published") {
+            await post.increment("views_count");
+        }
 
         return post;
     } catch (error) {
@@ -289,8 +288,6 @@ const createPost = async (file, postData, authorId) => {
                   reading_time: Math.ceil(stats.minutes),
                   published_at: null,
               };
-
-        console.log(dataCreate, 123123132);
 
         // Create post
         const post = await Post.create(dataCreate);

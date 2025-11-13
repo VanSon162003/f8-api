@@ -5,6 +5,8 @@ const ApiError = require("@/utils/ApiError");
 const path = require("path");
 const fs = require("fs");
 
+const getVideoDuration = require("@/utils/getVideoDuration");
+
 // Helper function to save file
 const saveFile = (file, directory) => {
     if (!file) return null;
@@ -260,17 +262,13 @@ class LessonsService {
                         data.video_url
                     );
 
-                    console.log(rootDir, data.video_url, 11111111111111111);
-
                     // Kiểm tra file có tồn tại không
                     if (!fs.existsSync(videoPath)) {
                         console.error("Video file not found:", videoPath);
                         throw new Error("Video file not found");
                     }
 
-                    duration = await require("@/utils/getVideoDuration")(
-                        videoPath
-                    );
+                    duration = await getVideoDuration(videoPath);
                 } catch (error) {
                     console.error("Error getting video duration:", error);
                 }

@@ -7,8 +7,6 @@ ffmpeg.setFfmpegPath(ffmpegPath);
 ffmpeg.setFfprobePath(ffprobePath);
 
 const getVideoDuration = (videoPath) => {
-    console.log(12222222, videoPath);
-
     return new Promise((resolve, reject) => {
         ffmpeg.ffprobe(videoPath, (err, metadata) => {
             if (err) {
