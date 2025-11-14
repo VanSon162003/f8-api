@@ -2,7 +2,6 @@ const ffmpeg = require("fluent-ffmpeg");
 const ffmpegPath = require("@ffmpeg-installer/ffmpeg").path;
 const ffprobePath = require("@ffprobe-installer/ffprobe").path;
 
-// Set both ffmpeg and ffprobe paths
 ffmpeg.setFfmpegPath(ffmpegPath);
 ffmpeg.setFfprobePath(ffprobePath);
 
@@ -16,7 +15,6 @@ const getVideoDuration = (videoPath) => {
             }
 
             try {
-                // Duration is in seconds
                 const duration = metadata.format.duration;
                 resolve(Math.round(duration));
             } catch (error) {
