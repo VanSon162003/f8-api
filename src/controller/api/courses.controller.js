@@ -24,14 +24,7 @@ const getBySlug = async (req, res) => {
     try {
         const { slug } = req.params;
 
-        const { limit, offset } = req.query;
-
-        const data = await coursesService.getBySlug(
-            slug,
-            req.user,
-            offset,
-            limit
-        );
+        const data = await coursesService.getBySlug(slug, req.user);
 
         response.success(res, 200, data);
     } catch (error) {

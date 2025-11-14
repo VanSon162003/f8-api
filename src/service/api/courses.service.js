@@ -67,12 +67,7 @@ const getByUser = async (currentUser) => {
     }
 };
 
-const getBySlug = async (
-    slug,
-    currentUser,
-    trackOffset = 0,
-    trackLimit = 10
-) => {
+const getBySlug = async (slug, currentUser) => {
     try {
         const course = await Course.findOne({
             where: { slug, status: "published" },
@@ -100,8 +95,6 @@ const getBySlug = async (
                 ["position", "ASC"],
                 [{ model: Lesson, as: "lessons" }, "position", "ASC"],
             ],
-            offset: +trackOffset,
-            limit: +trackLimit,
         });
 
         const users = await User.findOne({

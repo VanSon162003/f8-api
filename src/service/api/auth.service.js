@@ -126,11 +126,15 @@ const logout = async (data) => {
 };
 
 const authenticateAuth0 = async (data) => {
+    console.log(data);
+
     let type = "";
     let result = null;
     const subType = data.sub.split("|")[0];
 
     const user = await User.findOne({ where: { auth0_id: data.sub } });
+
+    console.log(data, subType);
 
     if (!user) {
         type = "register";
@@ -140,11 +144,15 @@ const authenticateAuth0 = async (data) => {
                 last_name:
                     subType === "facebook"
                         ? data.family_name
-                        : data.name.split(" ").at(-1) || "",
+                        : data.name
+                        ? data.name.split(" ").at(-1)
+                        : data.nickname.split("-").at(-1),
                 frist_name:
                     subType === "facebook"
                         ? data.given_name
-                        : data.name.split(" ").splice(0, 2).join(" ") || "",
+                        : data.name
+                        ? data.name.split(" ").splice(0, 2).join(" ")
+                        : data.nickname.split("-").splice(0, 2)[0],
                 password: "",
                 auth0_id: data.sub,
                 verify_at: Date.now(),
