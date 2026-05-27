@@ -21,7 +21,7 @@ const port = 3001;
 
 app.use(
     "/api/v1/uploads/",
-    express.static(path.join(__dirname, "src", "uploads"))
+    express.static(path.join(__dirname, "src", "uploads")),
 );
 
 app.use(cors());
@@ -40,7 +40,7 @@ app.use("/favicon.png", (req, res) => {
 
 app.use("/apple-touch-icon.png", (req, res) => {
     res.sendFile(
-        path.join(__dirname, "src/uploads/favicons/apple-touch-icon.png")
+        path.join(__dirname, "src/uploads/favicons/apple-touch-icon.png"),
     );
 });
 
